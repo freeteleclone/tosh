@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tosh, Qaychi, Qog'oz | Pro Edition</title>
+    <style>
+        /* === CSS VARIABLES (Mavzu va ranglar sozlamalari) === */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-panel: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        /* === GLOBAL STYLES === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* === CANVAS BACKGROUND === */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* === APP CONTAINER === */
+        .app-wrapper {
+            width: 100%;
+            max-width: 900px;
+            padding: 2rem;
+            z-index: 10;
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .app-wrapper {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        /* === UI PANELS (Glassmorphism) === */
+        .panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        /* === HEADER === */
+        header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* === SCOREBOARD === */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 16px;
+        }
+
+        .score-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .score-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .score-value {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.3s, transform 0.2s;
+        }
+
+        .vs-badge {
+            background: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        /* === ARENA & CONTROLS === */
+        .arena {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .status-message {
+            min-height: 3rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            width: 120px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.3), 
+                       -5px -5px 15px rgba(255,255,255,0.02);
+        }
+
+        .action-btn .icon {
+            font-size: 3rem;
+            transition: transform 0.3s;
+        }
+
+        .action-btn .label {
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-8px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .action-btn:hover:not(:disabled) .icon {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .action-btn:active:not(:disabled) {
+            transform: translateY(2px);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        /* === HISTORY & STATS (Right Panel) === */
+        .history-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stats-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-list {
+            list-style: none;
+            overflow-y: auto;
+            max-height: 300px;
+            padding-right: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Scrollbar styling */
+        .history-list::-webkit-scrollbar { width: 6px; }
+        .history-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .history-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        .history-item {
+            background: rgba(0,0,0,0.2);
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease forwards;
+            border-left: 4px solid transparent;
+        }
+
+        .history-item.win { border-left-color: var(--success); }
+        .history-item.loss { border-left-color: var(--danger); }
+        .history-item.tie { border-left-color: var(--warning); }
+
+        .btn-reset {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .btn-reset:hover {
+            background: var(--primary-hover);
+        }
+
+        .lifetime-stats {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-row:last-child { margin-bottom: 0; }
+        .stat-val { font-weight: bold; color: var(--text-main); }
+
+        /* === ANIMATIONS === */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes popScore {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+        
+        .pop-anim {
+            animation: popScore 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Animatsiyalar uchun Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="app-wrapper">
+        <!-- CHAP PANEL: Asosiy O'yin Maydoni -->
+        <main class="panel game-panel">
+            <header>
+                <h1>Tosh, Qaychi, Qog'oz</h1>
+                <p class="subtitle">Senior Dasturchi Versiyasi — 5 Ballgacha</p>
+            </header>
+
+            <div class="scoreboard">
+                <div class="score-card">
+                    <span class="score-name">Siz</span>
+                    <span class="score-value" id="ui-user-score">0</span>
+                </div>
+                <div class="vs-badge">VS</div>
+                <div class="score-card">
+                    <span class="score-name">Kompyuter</span>
+                    <span class="score-value" id="ui-comp-score">0</span>
+                </div>
+            </div>
+
+            <div class="arena">
+                <div class="status-message" id="ui-status">
+                    O'yinni boshlash uchun qurol tanlang
+                </div>
+
+                <div class="controls" id="ui-controls">
+                    <button class="action-btn" data-choice="rock">
+                        <span class="icon">🪨</span>
+                        <span class="label">Tosh</span>
+                    </button>
+                    <button class="action-btn" data-choice="paper">
+                        <span class="icon">📄</span>
+                        <span class="label">Qog'oz</span>
+                    </button>
+                    <button class="action-btn" data-choice="scissors">
+                        <span class="icon">✂️</span>
+                        <span class="label">Qaychi</span>
+                    </button>
+                </div>
+
+                <button class="btn-reset" id="ui-reset-btn">Yangi O'yin (Restart)</button>
+            </div>
+        </main>
+
+        <!-- O'NG PANEL: Tarix va Statistika -->
+        <aside class="panel history-panel">
+            <div>
+                <div class="stats-header">
+                    <span>O'yin Tarixi</span>
+                    <span id="ui-round-count" style="font-size: 0.9rem; color: var(--text-muted);">Raund: 0</span>
+                </div>
+                <ul class="history-list" id="ui-history-list">
+                    <!-- Tarix JS orqali qo'shiladi -->
+                </ul>
+            </div>
+
+            <div class="lifetime-stats">
+                <div class="stats-header" style="font-size: 1rem; border:none; margin-bottom: 0.5rem;">Umumiy Statistika (LocalStorage)</div>
+                <div class="stat-row">
+                    <span>O'ynalgan o'yinlar:</span>
+                    <span class="stat-val" id="stat-total">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>G'alabalar:</span>
+                    <span class="stat-val" id="stat-wins" style="color: var(--success)">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Mag'lubiyatlar:</span>
+                    <span class="stat-val" id="stat-losses" style="color: var(--danger)">0</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        /**
+         * ==========================================
+         * 1. MODEL (Ma'lumotlar va Biznes Mantiq)
+         * O'yin qoidalari va mantiq siz taqdim etgan Python faylidan olingan.
+         * ==========================================
+         */
+        class GameModel {
+            constructor() {
+                this.winningScore = 5; // Python kodidan olingan o'yin chegarasi
+                this.choices = ['rock', 'paper', 'scissors'];
+                this.resetCurrentMatch();
+            }
+
+            resetCurrentMatch() {
+                this.userScore = 0; // Boshlang'ich qiymat 0
+                this.compScore = 0; // Boshlang'ich qiymat 0
+                this.round = 0;
+                this.isGameOver = false;
+            }
+
+            getComputerChoice() {
+                const randomIndex = Math.floor(Math.random() * this.choices.length);
+                return this.choices[randomIndex];
+            }
+
+            /**
+             * Asosiy Python mantiqning JS ga o'girilgan holati.
+             * Qoidalar: Tosh qog'ozdan yengiladi, qaychini yengadi, va hokazo.
+             * @param {string} playerSelection 
+             * @param {string} computerSelection 
+             * @returns {Object} Natija haqida ma'lumot
+             */
+            playRound(playerSelection) {
+                if (this.isGameOver) return null;
+
+                const computerSelection = this.getComputerChoice();
+                this.round++;
+                let result = '';
+                let status = '';
+
+                // Python if-elif-else mantiq aynan shu yerda
+                if (playerSelection === computerSelection) {
+                    result = "Durang!";
+                    status = 'tie';
+                } else if (
+                    (playerSelection === 'rock' && computerSelection === 'scissors') ||
+                    (playerSelection === 'paper' && computerSelection === 'rock') ||
+                    (playerSelection === 'scissors' && computerSelection === 'paper')
+                ) {
+                    this.userScore++;
+                    result = `Siz yutdingiz!`;
+                    status = 'win';
+                } else {
+                    this.compScore++;
+                    result = `Siz yutqazdingiz!`;
+                    status = 'loss';
+                }
+
+                // Agar 5 balga yetsa, o'yin tugaydi
+                if (this.userScore === this.winningScore || this.compScore === this.winningScore) {
+                    this.isGameOver = true;
+                }
+
+                return {
+                    player: playerSelection,
+                    computer: computerSelection,
+                    result,
+                    status,
+                    userScore: this.userScore,
+                    compScore: this.compScore,
+                    isGameOver: this.isGameOver,
+                    winner: this.isGameOver ? (this.userScore === this.winningScore ? 'user' : 'computer') : null
+                };
+            }
+        }
+
+        /**
+         * ==========================================
+         * 2. STORAGE (LocalStorage Boshqaruvi)
+         * ==========================================
+         */
+        class StorageManager {
+            constructor() {
+                this.key = 'rps_pro_stats';
+                this.stats = this.loadStats();
+            }
+
+            loadStats() {
+                const data = localStorage.getItem(this.key);
+                return data ? JSON.parse(data) : { totalGames: 0, wins: 0, losses: 0 };
+            }
+
+            saveStats() {
+                localStorage.setItem(this.key, JSON.stringify(this.stats));
+            }
+
+            recordGame(winner) {
+                this.stats.totalGames++;
+                if (winner === 'user') this.stats.wins++;
+                else if (winner === 'computer') this.stats.losses++;
+                this.saveStats();
+            }
+
+            getStats() {
+                return this.stats;
+            }
+        }
+
+        /**
+         * ==========================================
+         * 3. VIEW (Foydalanuvchi Interfeysi)
+         * ==========================================
+         */
+        class GameView {
+            constructor() {
+                // DOM elementlarini keshlash (Senior practice)
+                this.els = {
+                    userScore: document.getElementById('ui-user-score'),
+                    compScore: document.getElementById('ui-comp-score'),
+                    status: document.getElementById('ui-status'),
+                    controls: document.querySelectorAll('.action-btn'),
+                    resetBtn: document.getElementById('ui-reset-btn'),
+                    historyList: document.getElementById('ui-history-list'),
+                    roundCount: document.getElementById('ui-round-count'),
+                    statTotal: document.getElementById('stat-total'),
+                    statWins: document.getElementById('stat-wins'),
+                    statLosses: document.getElementById('stat-losses'),
+                };
+
+                this.emojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
+                this.colors = { win: 'var(--success)', loss: 'var(--danger)', tie: 'var(--warning)' };
+            }
+
+            bindPlayEvent(handler) {
+                this.els.controls.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const choice = btn.getAttribute('data-choice');
+                        handler(choice);
+                    });
+                });
+            }
+
+            bindResetEvent(handler) {
+                this.els.resetBtn.addEventListener('click', handler);
+            }
+
+            updateScore(userScore, compScore, status) {
+                this.els.userScore.textContent = userScore;
+                this.els.compScore.textContent = compScore;
+                
+                // Animatsiya qo'shish va olib tashlash
+                const target = status === 'win' ? this.els.userScore : (status === 'loss' ? this.els.compScore : null);
+                if (target) {
+                    target.classList.remove('pop-anim');
+                    void target.offsetWidth; // Trigger reflow
+                    target.classList.add('pop-anim');
+                    target.style.color = this.colors[status];
+                    setTimeout(() => target.style.color = 'var(--text-main)', 500);
+                }
+            }
+
+            updateStatus(message, statusColor = 'var(--text-main)') {
+                this.els.status.innerHTML = message;
+                this.els.status.style.color = statusColor;
+            }
+
+            addHistoryItem(round, player, computer, result, status) {
+                const li = document.createElement('li');
+                li.className = `history-item ${status}`;
+                li.innerHTML = `
+                    <span style="opacity: 0.7; font-size: 0.8rem">#${round}</span>
+                    <span>${this.emojis[player]} vs ${this.emojis[computer]}</span>
+                    <strong style="color: ${this.colors[status]}">${result}</strong>
+                `;
+                this.els.historyList.prepend(li);
+                this.els.roundCount.textContent = `Raund: ${round}`;
+            }
+
+            setGameOverState(winnerMessage, color) {
+                this.els.controls.forEach(btn => btn.disabled = true);
+                this.updateStatus(winnerMessage, color);
+                this.els.resetBtn.style.display = 'block';
+            }
+
+            resetUI() {
+                this.els.userScore.textContent = '0';
+                this.els.compScore.textContent = '0';
+                this.els.status.innerHTML = "O'yinni boshlash uchun qurol tanlang";
+                this.els.status.style.color = 'var(--text-main)';
+                this.els.controls.forEach(btn => btn.disabled = false);
+                this.els.resetBtn.style.display = 'none';
+                this.els.historyList.innerHTML = '';
+                this.els.roundCount.textContent = 'Raund: 0';
+            }
+
+            updateLifetimeStats(stats) {
+                this.els.statTotal.textContent = stats.totalGames;
+                this.els.statWins.textContent = stats.wins;
+                this.els.statLosses.textContent = stats.losses;
+            }
+        }
+
+        /**
+         * ==========================================
+         * 4. CONFETTI (Canvas Animatsiya Tizimi)
+         * Yutuq bo'lganda otiladigan salyut (Zarrachalar)
+         * ==========================================
+         */
+        class ConfettiSystem {
+            constructor() {
+                this.canvas = document.getElementById('confetti-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#c084fc'];
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            fire() {
+                for (let i = 0; i < 150; i++) {
+                    this.particles.push({
+                        x: this.canvas.width / 2,
+                        y: this.canvas.height / 2,
+                        r: Math.random() * 6 + 2,
+                        dx: Math.random() * 20 - 10,
+                        dy: Math.random() * -20 - 5,
+                        color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                        tilt: Math.floor(Math.random() * 10) - 10,
+                        tiltAngle: 0,
+                        tiltAngleInc: (Math.random() * 0.07) + 0.05
+                    });
+                }
+                this.animate();
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                let activeParticles = 0;
+                
+                for (let i = 0; i < this.particles.length; i++) {
+                    let p = this.particles[i];
+                    if(p.y > this.canvas.height) continue;
+                    
+                    activeParticles++;
+                    p.tiltAngle += p.tiltAngleInc;
+                    p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                    p.x += Math.sin(p.tiltAngle) * 2;
+                    p.dy += 0.1; // Gravity
+                    p.y += p.dy;
+                    p.x += p.dx;
+
+                    this.ctx.beginPath();
+                    this.ctx.lineWidth = p.r;
+                    this.ctx.strokeStyle = p.color;
+                    this.ctx.moveTo(p.x + p.tilt + p.r, p.y);
+                    this.ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+                    this.ctx.stroke();
+                }
+
+                if (activeParticles === 0) {
+                    this.particles = []; // Animatsiyani tozalash
+                }
+            }
+        }
+
+        /**
+         * ==========================================
+         * 5. CONTROLLER (Barchasini birlashtiruvchi markaz)
+         * ==========================================
+         */
+        class GameController {
+            constructor(model, view, storage, confetti) {
+                this.model = model;
+                this.view = view;
+                this.storage = storage;
+                this.confetti = confetti;
+
+                // Eventlarni ulash
+                this.view.bindPlayEvent(this.handlePlayRound.bind(this));
+                this.view.bindResetEvent(this.handleResetMatch.bind(this));
+
+                // Boshlang'ich ma'lumotlarni yuklash
+                this.view.updateLifetimeStats(this.storage.getStats());
+            }
+
+            handlePlayRound(playerChoice) {
+                const resultData = this.model.playRound(playerChoice);
+                if (!resultData) return; // O'yin tugagan bo'lsa
+
+                // 1. Hisobni yangilash
+                this.view.updateScore(resultData.userScore, resultData.compScore, resultData.status);
+
+                // 2. Tarixga qo'shish
+                this.view.addHistoryItem(
+                    this.model.round, 
+                    resultData.player, 
+                    resultData.computer, 
+                    resultData.result, 
+                    resultData.status
+                );
+
+                // 3. Markaziy xabarni yangilash
+                let msg = `${this.view.emojis[resultData.player]} vs ${this.view.emojis[resultData.computer]}<br>`;
+                msg += `<span style="font-size:1rem; opacity:0.8">${resultData.result}</span>`;
+                this.view.updateStatus(msg);
+
+                // 4. Agar kimdir yutgan bo'lsa (5 ball)[cite: 1]
+                if (resultData.isGameOver) {
+                    this.handleGameOver(resultData.winner);
+                }
+            }
+
+            handleGameOver(winner) {
+                this.storage.recordGame(winner);
+                this.view.updateLifetimeStats(this.storage.getStats());
+
+                if (winner === 'user') {
+                    this.view.setGameOverState("🎉 Tabriklaymiz! Siz O'yinni Yutdingiz!", 'var(--success)');
+                    this.confetti.fire(); // Salyut otish
+                } else {
+                    this.view.setGameOverState("💻 Kompyuter Yutdi! Yana urinib ko'ring.", 'var(--danger)');
+                }
+            }
+
+            handleResetMatch() {
+                this.model.resetCurrentMatch();
+                this.view.resetUI();
+            }
+        }
+
+        /**
+         * ==========================================
+         * DASTURNI ISHGA TUSHIRISH (Initialization)
+         * ==========================================
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const appModel = new GameModel();
+            const appView = new GameView();
+            const appStorage = new StorageManager();
+            const appConfetti = new ConfettiSystem();
+            
+            // Dastur arxitekturasini qamrab oluvchi kontroller
+            const appController = new GameController(appModel, appView, appStorage, appConfetti);
+        });
+
+    </script>
+</body>
+</html>
