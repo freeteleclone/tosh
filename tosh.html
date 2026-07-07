@@ -1,0 +1,2841 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+    <title>Mini O'yinlar Markazi — Tosh-Qaychi-Qog'oz, Krestik-Nolik, Xotira</title>
+    <style>
+/* ============================================================
+   O'YINLAR MARKAZI — Uslublar (CSS)
+   Asosiy mavzu: Dark glassmorphism (asl fayldan kengaytirilgan)
+   ============================================================ */
+:root {
+    --bg-dark: #0f172a;
+    --bg-panel: rgba(30, 41, 59, 0.7);
+    --bg-panel-solid: #1e293b;
+    --bg-elevated: rgba(15, 23, 42, 0.9);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --accent-purple: #c084fc;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 10px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-family);
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    background: radial-gradient(circle at 20% 0%, #1e293b 0%, var(--bg-dark) 55%);
+    color: var(--text-main);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    position: relative;
+}
+
+button, input, select {
+    font-family: inherit;
+    color: inherit;
+}
+
+button {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.hidden { display: none !important; }
+
+#confetti-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.top-bar {
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: calc(0.75rem + var(--safe-top)) 1rem 0.75rem;
+    z-index: 20;
+    flex-wrap: wrap;
+}
+
+.player-badge, .timer-badge {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+}
+
+.timer-badge {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+}
+
+.timer-badge-blocked {
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+#lang-select {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    appearance: none;
+}
+
+.icon-btn {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn:hover { border-color: var(--primary); }
+
+/* ============================================================
+   APP WRAPPER / SCREENS
+   ============================================================ */
+.app-wrapper {
+    width: 100%;
+    max-width: 960px;
+    padding: 0.5rem 1rem calc(2rem + var(--safe-bottom));
+    z-index: 10;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.screen { display: none; }
+.screen.screen-active {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: fadeUp 0.35s ease;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.panel {
+    background: var(--bg-panel);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    box-shadow: var(--shadow);
+}
+
+header.hero {
+    text-align: center;
+    padding: 0.5rem 0 0.25rem;
+}
+
+h1.app-h1 {
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+    background: linear-gradient(135deg, #60a5fa, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.4rem;
+}
+
+/* ============================================================
+   GAME CARDS (Bosh sahifa)
+   ============================================================ */
+.game-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .game-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.game-card {
+    background: linear-gradient(160deg, rgba(59,130,246,0.12), rgba(30,41,59,0.6));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.game-card:active { transform: scale(0.97); }
+.game-card:hover { border-color: var(--primary); transform: translateY(-4px); }
+
+.game-card .icon { font-size: 2.6rem; }
+.game-card .g-title { font-weight: 700; font-size: 1.05rem; }
+.game-card .g-desc { color: var(--text-muted); font-size: 0.8rem; }
+
+/* ============================================================
+   MODE SELECT / DIFFICULTY / CONNECT SCREENS
+   ============================================================ */
+.back-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.back-btn {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+}
+
+.screen-title { font-size: 1.3rem; font-weight: 700; }
+
+.mode-grid, .difficulty-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+}
+
+@media (min-width: 560px) {
+    .mode-grid { grid-template-columns: repeat(3, 1fr); }
+    .difficulty-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.mode-btn, .diff-btn {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 84px;
+    justify-content: center;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.mode-btn .m-icon, .diff-btn .m-icon { font-size: 1.6rem; }
+.mode-btn:active, .diff-btn:active { transform: scale(0.96); }
+.mode-btn:hover, .diff-btn:hover { border-color: var(--primary); }
+.diff-btn.selected { border-color: var(--success); background: rgba(16,185,129,0.12); }
+
+.connect-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+}
+
+.connect-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    width: 100%;
+}
+
+@media (min-width: 480px) {
+    .connect-options { grid-template-columns: 1fr 1fr; }
+}
+
+.code-display {
+    font-size: 2.4rem;
+    font-weight: 900;
+    letter-spacing: 0.4rem;
+    background: rgba(0,0,0,0.25);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    font-variant-numeric: tabular-nums;
+    color: #93c5fd;
+}
+
+.spinner {
+    width: 34px;
+    height: 34px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.code-input {
+    width: 100%;
+    max-width: 220px;
+    text-align: center;
+    font-size: 1.6rem;
+    letter-spacing: 0.35rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: rgba(0,0,0,0.25);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    color: var(--text-main);
+}
+
+.code-input:focus { outline: none; border-color: var(--primary); }
+
+.primary-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: background 0.2s;
+}
+
+.primary-btn:hover { background: var(--primary-hover); }
+.primary-btn:active { transform: scale(0.97); }
+
+.ghost-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.status-line {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    min-height: 1.2rem;
+}
+
+.error-text { color: var(--danger); font-size: 0.85rem; }
+
+/* ============================================================
+   RPS SCREEN (asl dizayndan)
+   ============================================================ */
+.rps-layout {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .rps-layout { grid-template-columns: 2fr 1fr; }
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0.5rem 0 1rem;
+    padding: 1.25rem;
+    background: rgba(0,0,0,0.2);
+    border-radius: var(--radius-md);
+}
+
+.score-card { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; max-width: 40%; }
+.score-name {
+    font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; text-align: center;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;
+}
+.score-value { font-size: clamp(2.4rem, 8vw, 4rem); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; transition: color 0.3s, transform 0.2s; }
+.vs-badge { background: var(--primary); padding: 0.4rem 0.9rem; border-radius: 20px; font-weight: bold; font-size: 0.85rem; }
+
+.arena { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+.status-message { min-height: 3rem; font-size: clamp(1.1rem, 4vw, 1.4rem); font-weight: 600; text-align: center; }
+
+.controls { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+.action-btn {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    padding: 1.1rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+    width: 96px;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.3), -5px -5px 15px rgba(255,255,255,0.02);
+}
+
+.action-btn .icon { font-size: 2.4rem; transition: transform 0.3s; }
+.action-btn .label { font-weight: 600; font-size: 0.9rem; }
+.action-btn:active:not(:disabled) { transform: translateY(2px); }
+.action-btn:hover:not(:disabled) { transform: translateY(-6px); border-color: var(--primary); }
+.action-btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+
+.history-panel { display: flex; flex-direction: column; gap: 1.25rem; }
+.stats-header {
+    font-size: 1.05rem; font-weight: 700; border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;
+}
+
+.history-list { list-style: none; overflow-y: auto; max-height: 220px; display: flex; flex-direction: column; gap: 0.5rem; }
+.history-item {
+    background: rgba(0,0,0,0.2); padding: 0.7rem 0.9rem; border-radius: 12px; font-size: 0.85rem;
+    display: flex; justify-content: space-between; align-items: center; border-left: 4px solid transparent;
+    animation: slideIn 0.3s ease forwards;
+}
+.history-item.win { border-left-color: var(--success); }
+.history-item.loss { border-left-color: var(--danger); }
+.history-item.tie { border-left-color: var(--warning); }
+
+@keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+
+.lifetime-stats { background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; font-size: 0.85rem; color: var(--text-muted); }
+.stat-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+.stat-row:last-child { margin-bottom: 0; }
+.stat-val { font-weight: bold; color: var(--text-main); }
+
+@keyframes popScore { 0% { transform: scale(1); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
+.pop-anim { animation: popScore 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+.btn-reset {
+    width: 100%; max-width: 320px; margin: 0 auto; padding: 1rem; background: var(--primary); color: white;
+    border: none; border-radius: 12px; font-size: 1.05rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; display: none;
+}
+.btn-reset.visible { display: block; }
+
+/* ============================================================
+   TIC-TAC-TOE
+   ============================================================ */
+.ttt-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+
+.ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    width: min(340px, 86vw);
+    aspect-ratio: 1;
+}
+
+.ttt-cell {
+    background: rgba(0,0,0,0.25);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: clamp(1.8rem, 9vw, 2.6rem);
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s, border-color 0.2s;
+}
+
+.ttt-cell:not(:disabled):active { transform: scale(0.94); }
+.ttt-cell.x-mark { color: #60a5fa; }
+.ttt-cell.o-mark { color: #f472b6; }
+.ttt-cell.win-line { border-color: var(--success); background: rgba(16,185,129,0.15); }
+
+/* ============================================================
+   MEMORY MATCH
+   ============================================================ */
+.memory-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+
+.memory-stats { display: flex; gap: 1.5rem; }
+.memory-stat { text-align: center; }
+.memory-stat .m-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.memory-stat .m-value { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.memory-grid {
+    display: grid;
+    gap: 0.5rem;
+    width: min(420px, 92vw);
+}
+.memory-grid-easy { grid-template-columns: repeat(4, 1fr); }
+.memory-grid-hard { grid-template-columns: repeat(4, 1fr); }
+
+.memory-card {
+    aspect-ratio: 1;
+    background: transparent;
+    border: none;
+    perspective: 600px;
+    padding: 0;
+}
+
+.memory-card-inner {
+    position: relative;
+    width: 100%; height: 100%;
+    display: block;
+    transform-style: preserve-3d;
+    transition: transform 0.4s;
+    border-radius: var(--radius-sm);
+}
+
+.memory-card.is-flipped .memory-card-inner,
+.memory-card.is-matched .memory-card-inner {
+    transform: rotateY(180deg);
+}
+
+.memory-face-back, .memory-face-front {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(1.2rem, 6vw, 1.8rem);
+    border-radius: var(--radius-sm);
+    backface-visibility: hidden;
+    border: 2px solid var(--border-color);
+}
+
+.memory-face-back { background: linear-gradient(145deg, #1e293b, #0f172a); }
+.memory-face-front { background: rgba(59,130,246,0.15); transform: rotateY(180deg); }
+.memory-card.is-matched .memory-face-front { background: rgba(16,185,129,0.2); border-color: var(--success); }
+
+/* ============================================================
+   MODALS (Ism, Admin, Dam olish overlay)
+   ============================================================ */
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(2, 6, 23, 0.75);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    padding: 1.25rem;
+}
+
+.modal-panel {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.75rem;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    align-items: center;
+}
+
+.modal-panel h2 { font-size: 1.4rem; }
+.modal-panel input {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    font-size: 1.05rem;
+    text-align: center;
+}
+.modal-panel input:focus { outline: none; border-color: var(--primary); }
+
+.block-icon { font-size: 3.4rem; }
+#block-countdown { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--warning); }
+
+.admin-msg { font-size: 0.9rem; min-height: 1.2rem; }
+.admin-msg-success { color: var(--success); }
+.admin-msg-error { color: var(--danger); }
+
+.link-btn {
+    background: none; border: none; color: var(--text-muted);
+    text-decoration: underline; font-size: 0.8rem; margin-top: 0.5rem;
+}
+
+/* ============================================================
+   SETTINGS SLIDE PANEL
+   ============================================================ */
+.side-panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(340px, 88vw);
+    background: var(--bg-elevated);
+    border-left: 1px solid var(--border-color);
+    z-index: 9997;
+    padding: calc(1.5rem + var(--safe-top)) 1.5rem calc(1.5rem + var(--safe-bottom));
+    display: flex; flex-direction: column; gap: 1.25rem;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+}
+.side-panel.hidden { transform: translateX(110%); display: flex; }
+
+.settings-row { display: flex; flex-direction: column; gap: 0.5rem; }
+.settings-row label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.settings-name-row { display: flex; gap: 0.5rem; align-items: center; }
+.settings-name-row span { font-weight: 700; flex: 1; }
+
+.settings-select {
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    padding: 0.6rem 0.8rem; font-size: 0.95rem;
+}
+
+.admin-trigger-btn {
+    margin-top: auto;
+    background: rgba(0,0,0,0.25);
+    border: 1px dashed var(--border-color);
+    color: var(--text-muted);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.small-btn {
+    background: var(--bg-panel); border: 1px solid var(--border-color); color: var(--text-main);
+    border-radius: var(--radius-sm); padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600;
+}
+
+.danger-btn {
+    background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5;
+    border-radius: var(--radius-md); padding: 0.75rem; font-size: 0.9rem; font-weight: 600;
+}
+
+.settings-close-row { display: flex; justify-content: flex-end; }
+
+@media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- ============ ISM SO'RASH MODALI ============ -->
+    <div id="name-modal" class="modal-overlay hidden">
+        <div class="modal-panel">
+            <div style="font-size:2.4rem;">👋</div>
+            <h2 data-i18n="ask_name_title">Ismingiz nima?</h2>
+            <p class="status-line" data-i18n="ask_name_sub">O'ynashni boshlashdan oldin tanishib olaylik</p>
+            <input type="text" id="name-input" maxlength="20" data-i18n-ph="ask_name_placeholder" placeholder="Ismingizni yozing...">
+            <p id="name-error" class="error-text hidden" data-i18n="name_error">Kamida 2 ta harf kiriting</p>
+            <button class="primary-btn" id="name-submit-btn" style="width:100%" data-i18n="ask_name_btn">Boshlash</button>
+        </div>
+    </div>
+
+    <!-- ============ DAM OLISH (BLOK) OVERLAY ============ -->
+    <div id="block-overlay" class="modal-overlay hidden">
+        <div class="modal-panel">
+            <div class="block-icon">😴</div>
+            <h2 data-i18n="rest_title">Charchadingizmi?</h2>
+            <p class="status-line" data-i18n="rest_msg">Siz 40 daqiqa o'ynadingiz. Biroz dam oling — ko'zlaringiz va miyangiz rahmat aytadi!</p>
+            <div>
+                <div class="status-line" data-i18n="rest_countdown_label">Qolgan vaqt</div>
+                <div id="block-countdown">02:00:00</div>
+            </div>
+            <button class="link-btn" id="block-admin-link" data-i18n="settings_admin_panel">Admin Panel</button>
+        </div>
+    </div>
+
+    <!-- ============ ADMIN PANEL MODALI ============ -->
+    <div id="admin-modal" class="modal-overlay hidden">
+        <div class="modal-panel">
+            <div style="font-size:2.2rem;">🔐</div>
+            <h2 data-i18n="admin_title">Admin Panel</h2>
+            <p class="status-line" data-i18n="admin_desc">Maxfiy kodni kiriting</p>
+            <input type="password" id="admin-code-input" data-i18n-ph="admin_placeholder" placeholder="Maxfiy kod">
+            <p id="admin-result" class="admin-msg"></p>
+            <button class="primary-btn" id="admin-submit-btn" style="width:100%" data-i18n="admin_submit">Tasdiqlash</button>
+            <button class="ghost-btn" id="admin-close-btn" data-i18n="settings_close" style="width:100%">Yopish</button>
+        </div>
+    </div>
+
+    <!-- ============ SOZLAMALAR PANELI ============ -->
+    <div id="settings-panel" class="side-panel hidden">
+        <div class="settings-close-row">
+            <button class="icon-btn" id="settings-close-btn">✕</button>
+        </div>
+        <h2 data-i18n="settings">Sozlamalar</h2>
+
+        <div class="settings-row">
+            <label data-i18n="settings_your_name">Ismingiz</label>
+            <div class="settings-name-row">
+                <span id="settings-name-display">—</span>
+                <button class="small-btn" id="settings-change-name-btn" data-i18n="settings_change">O'zgartirish</button>
+            </div>
+        </div>
+
+        <div class="settings-row">
+            <label data-i18n="settings_language">Til</label>
+            <select id="settings-lang-select" class="settings-select">
+                <option value="uz">O'zbekcha</option>
+                <option value="ru">Русский</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+
+        <div class="settings-row">
+            <label data-i18n="timer_label">O'yin vaqti</label>
+            <div class="status-line" id="settings-timer-info">—</div>
+        </div>
+
+        <button class="danger-btn" id="settings-reset-btn" data-i18n="settings_reset_stats">Statistikani tozalash</button>
+
+        <button class="admin-trigger-btn" id="settings-admin-btn" data-i18n="settings_admin_panel">Admin Panel</button>
+    </div>
+
+    <!-- ============ TOP BAR ============ -->
+    <div class="top-bar">
+        <div class="player-badge">👤 <span id="player-name-display">—</span></div>
+        <div class="timer-badge" id="timer-badge">⏱ 40:00</div>
+        <div class="header-actions">
+            <select id="lang-select">
+                <option value="uz">UZ</option>
+                <option value="ru">RU</option>
+                <option value="en">EN</option>
+            </select>
+            <button class="icon-btn" id="settings-btn">⚙️</button>
+        </div>
+    </div>
+
+    <!-- ============ ASOSIY KONTEYNER ============ -->
+    <div class="app-wrapper">
+
+        <!-- ---------- BOSH SAHIFA ---------- -->
+        <section id="screen-home" class="screen">
+            <header class="hero">
+                <h1 class="app-h1" data-i18n="app_title">Mini O'yinlar Markazi</h1>
+                <p class="subtitle" data-i18n="home_pick_game">O'ynamoqchi bo'lgan o'yiningizni tanlang</p>
+            </header>
+            <div class="game-grid">
+                <button class="game-card" data-game="rps">
+                    <span class="icon">🪨📄✂️</span>
+                    <span class="g-title" data-i18n="game_rps_title">Tosh, Qaychi, Qog'oz</span>
+                    <span class="g-desc" data-i18n="game_rps_desc">Klassik qo'l o'yini</span>
+                </button>
+                <button class="game-card" data-game="ttt">
+                    <span class="icon">❌⭕</span>
+                    <span class="g-title" data-i18n="game_ttt_title">Krestik-Nolik</span>
+                    <span class="g-desc" data-i18n="game_ttt_desc">3x3 strategiya o'yini</span>
+                </button>
+                <button class="game-card" data-game="memory">
+                    <span class="icon">🧠</span>
+                    <span class="g-title" data-i18n="game_memory_title">Xotira O'yini</span>
+                    <span class="g-desc" data-i18n="game_memory_desc">Juftliklarni toping</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ---------- REJIM TANLASH (RPS / TTT umumiy) ---------- -->
+        <section id="screen-mode-select" class="screen">
+            <div class="back-row">
+                <button class="back-btn" data-back="screen-home">←</button>
+                <div class="screen-title" id="mode-select-title">—</div>
+            </div>
+            <div class="mode-grid">
+                <button class="mode-btn" id="mode-btn-cpu">
+                    <span class="m-icon">🤖</span>
+                    <span data-i18n="mode_cpu">Kompyuterga qarshi</span>
+                </button>
+                <button class="mode-btn" id="mode-btn-friend">
+                    <span class="m-icon">🔗</span>
+                    <span data-i18n="mode_friend">Do'st bilan</span>
+                </button>
+                <button class="mode-btn" id="mode-btn-random">
+                    <span class="m-icon">🎲</span>
+                    <span data-i18n="mode_random">Tasodifiy raqib</span>
+                </button>
+            </div>
+
+            <!-- TTT uchun qiyinlik darajasi (faqat kompyuterga qarshi bosilganda ko'rinadi) -->
+            <div id="ttt-difficulty-box" class="hidden">
+                <div class="screen-title" style="font-size:1rem; margin-bottom:0.6rem;" data-i18n="choose_difficulty">Qiyinlik darajasini tanlang</div>
+                <div class="difficulty-grid">
+                    <button class="diff-btn" data-diff="easy">
+                        <span class="m-icon">🙂</span>
+                        <span data-i18n="difficulty_easy">Oson</span>
+                    </button>
+                    <button class="diff-btn" data-diff="hard">
+                        <span class="m-icon">🔥</span>
+                        <span data-i18n="difficulty_hard">Qiyin</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ---------- XOTIRA O'YINI QIYINLIK TANLASH ---------- -->
+        <section id="screen-memory-setup" class="screen">
+            <div class="back-row">
+                <button class="back-btn" data-back="screen-home">←</button>
+                <div class="screen-title" data-i18n="game_memory_title">Xotira O'yini</div>
+            </div>
+            <div class="difficulty-grid">
+                <button class="diff-btn" data-mem-size="easy">
+                    <span class="m-icon">🙂</span>
+                    <span data-i18n="difficulty_easy">Oson</span>
+                    <span class="status-line" data-i18n="memory_size_easy">6 juft</span>
+                </button>
+                <button class="diff-btn" data-mem-size="hard">
+                    <span class="m-icon">🔥</span>
+                    <span data-i18n="difficulty_hard">Qiyin</span>
+                    <span class="status-line" data-i18n="memory_size_hard">8 juft</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ---------- ULANISH EKRANI (Do'st bilan / Tasodifiy) ---------- -->
+        <section id="screen-connect" class="screen">
+            <div class="back-row">
+                <button class="back-btn" id="connect-back-btn">←</button>
+                <div class="screen-title" data-i18n="connect_title">Do'st bilan ulanish</div>
+            </div>
+            <div class="panel connect-card">
+
+                <div id="connect-choice-box" class="connect-options">
+                    <button class="mode-btn" id="connect-create-btn">
+                        <span class="m-icon">➕</span>
+                        <span data-i18n="connect_create">Kod yaratish</span>
+                    </button>
+                    <button class="mode-btn" id="connect-enter-btn">
+                        <span class="m-icon">⌨️</span>
+                        <span data-i18n="connect_enter_title">Kodni kiriting</span>
+                    </button>
+                </div>
+
+                <div id="connect-host-box" class="hidden connect-card">
+                    <p class="status-line" data-i18n="connect_create_desc">Do'stingizga shu kodni yuboring</p>
+                    <div class="code-display" id="host-code-display">-----</div>
+                    <button class="small-btn" id="copy-code-btn" data-i18n="copy_btn">Nusxalash</button>
+                    <p class="status-line" data-i18n="connect_share_hint">Bu kodni WhatsApp yoki Telegram orqali yuboring</p>
+                    <div class="spinner"></div>
+                    <p class="status-line" data-i18n="connect_waiting">Do'stingiz ulanishini kutmoqda...</p>
+                </div>
+
+                <div id="connect-join-box" class="hidden connect-card">
+                    <p class="status-line" data-i18n="connect_enter_placeholder2">Do'stingiz yuborgan kodni kiriting</p>
+                    <input type="text" id="join-code-input" class="code-input" maxlength="5" data-i18n-ph="connect_enter_placeholder" placeholder="masalan 3K7QZ">
+                    <button class="primary-btn" id="join-code-submit-btn" data-i18n="connect_join_btn">Ulanish</button>
+                    <p id="join-error" class="error-text hidden" data-i18n="connect_error">Ulanishda xatolik yuz berdi. Qaytadan urinib ko'ring.</p>
+                </div>
+
+                <div id="connect-random-box" class="hidden connect-card">
+                    <div class="spinner"></div>
+                    <p class="status-line" data-i18n="connect_random_title">Tasodifiy raqib qidirilmoqda</p>
+                    <p class="status-line" data-i18n="connect_random_desc">Bir daqiqagacha vaqt olishi mumkin</p>
+                </div>
+
+                <div id="connect-error-box" class="hidden connect-card">
+                    <p class="error-text" data-i18n="connect_error">Ulanishda xatolik yuz berdi. Qaytadan urinib ko'ring.</p>
+                    <button class="primary-btn" id="connect-retry-btn" data-i18n="connect_cancel">Bekor qilish</button>
+                </div>
+
+                <button class="ghost-btn hidden" id="connect-cancel-btn" data-i18n="connect_cancel">Bekor qilish</button>
+            </div>
+        </section>
+
+        <!-- ---------- TOSH-QAYCHI-QOG'OZ ---------- -->
+        <section id="screen-rps" class="screen">
+            <div class="back-row">
+                <button class="back-btn" data-back="screen-home">←</button>
+                <div class="screen-title" data-i18n="game_rps_title">Tosh, Qaychi, Qog'oz</div>
+            </div>
+
+            <div class="rps-layout">
+                <main class="panel game-panel">
+                    <div class="scoreboard">
+                        <div class="score-card">
+                            <span class="score-name" id="rps-user-label">SIZ</span>
+                            <span class="score-value" id="rps-user-score">0</span>
+                        </div>
+                        <div class="vs-badge">VS</div>
+                        <div class="score-card">
+                            <span class="score-name" id="rps-opp-label">KOMPYUTER</span>
+                            <span class="score-value" id="rps-opp-score">0</span>
+                        </div>
+                    </div>
+
+                    <div class="arena">
+                        <div class="status-message" id="rps-status" data-i18n="rps_choose">Qurolingizni tanlang</div>
+
+                        <div class="controls" id="rps-controls">
+                            <button class="action-btn" data-choice="rock">
+                                <span class="icon">🪨</span>
+                                <span class="label" data-i18n="rps_rock">Tosh</span>
+                            </button>
+                            <button class="action-btn" data-choice="paper">
+                                <span class="icon">📄</span>
+                                <span class="label" data-i18n="rps_paper">Qog'oz</span>
+                            </button>
+                            <button class="action-btn" data-choice="scissors">
+                                <span class="icon">✂️</span>
+                                <span class="label" data-i18n="rps_scissors">Qaychi</span>
+                            </button>
+                        </div>
+
+                        <button class="btn-reset" id="rps-reset-btn" data-i18n="rps_restart">Yangi o'yin</button>
+                    </div>
+                </main>
+
+                <aside class="panel history-panel">
+                    <div>
+                        <div class="stats-header">
+                            <span data-i18n="rps_history">O'yin tarixi</span>
+                            <span id="rps-round-count" style="font-size:0.85rem;color:var(--text-muted);">Raund: 0</span>
+                        </div>
+                        <ul class="history-list" id="rps-history-list"></ul>
+                    </div>
+                    <div class="lifetime-stats">
+                        <div class="stats-header" style="font-size:0.95rem;border:none;margin-bottom:0.4rem;" data-i18n="rps_stats">Umumiy statistika</div>
+                        <div class="stat-row"><span data-i18n="rps_total">O'ynalgan o'yinlar</span><span class="stat-val" id="rps-stat-total">0</span></div>
+                        <div class="stat-row"><span data-i18n="rps_wins">G'alabalar</span><span class="stat-val" id="rps-stat-wins" style="color:var(--success)">0</span></div>
+                        <div class="stat-row"><span data-i18n="rps_losses">Mag'lubiyatlar</span><span class="stat-val" id="rps-stat-losses" style="color:var(--danger)">0</span></div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- ---------- KRESTIK-NOLIK ---------- -->
+        <section id="screen-ttt" class="screen">
+            <div class="back-row">
+                <button class="back-btn" data-back="screen-home">←</button>
+                <div class="screen-title" data-i18n="game_ttt_title">Krestik-Nolik</div>
+            </div>
+
+            <div class="panel ttt-wrap">
+                <div class="scoreboard" style="width:100%;">
+                    <div class="score-card">
+                        <span class="score-name" id="ttt-user-label">SIZ (X)</span>
+                    </div>
+                    <div class="vs-badge">VS</div>
+                    <div class="score-card">
+                        <span class="score-name" id="ttt-opp-label">KOMPYUTER (O)</span>
+                    </div>
+                </div>
+
+                <div class="status-message" id="ttt-status" data-i18n="ttt_your_turn">Sizning navbatingiz</div>
+
+                <div class="ttt-board" id="ttt-board"></div>
+
+                <button class="btn-reset" id="ttt-reset-btn" data-i18n="ttt_restart">Yangi o'yin</button>
+
+                <div class="lifetime-stats" style="width:100%;">
+                    <div class="stat-row"><span data-i18n="rps_total">O'ynalgan o'yinlar</span><span class="stat-val" id="ttt-stat-total">0</span></div>
+                    <div class="stat-row"><span data-i18n="rps_wins">G'alabalar</span><span class="stat-val" id="ttt-stat-wins" style="color:var(--success)">0</span></div>
+                    <div class="stat-row"><span data-i18n="rps_losses">Mag'lubiyatlar</span><span class="stat-val" id="ttt-stat-losses" style="color:var(--danger)">0</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ---------- XOTIRA O'YINI ---------- -->
+        <section id="screen-memory" class="screen">
+            <div class="back-row">
+                <button class="back-btn" data-back="screen-home">←</button>
+                <div class="screen-title" data-i18n="game_memory_title">Xotira O'yini</div>
+            </div>
+
+            <div class="panel memory-wrap">
+                <div class="memory-stats">
+                    <div class="memory-stat">
+                        <div class="m-label" data-i18n="memory_moves">Yurishlar</div>
+                        <div class="m-value" id="memory-moves">0</div>
+                    </div>
+                    <div class="memory-stat">
+                        <div class="m-label" data-i18n="memory_time">Vaqt</div>
+                        <div class="m-value" id="memory-time">00:00</div>
+                    </div>
+                    <div class="memory-stat">
+                        <div class="m-label" data-i18n="memory_best">Rekord</div>
+                        <div class="m-value" id="memory-best">—</div>
+                    </div>
+                </div>
+
+                <div class="memory-grid" id="memory-grid"></div>
+
+                <button class="btn-reset" id="memory-reset-btn" data-i18n="memory_restart">Yangi o'yin</button>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script>
+'use strict';
+/* ============================================================
+   O'YINLAR MARKAZI — Ilova mantig'i
+   Tuzilma:
+     0. I18N lug'ati
+     1. Global holat (App) va yordamchi funksiyalar
+     2. Vaqt/Blok tizimi (TimerState)
+     3. Ekranlarni boshqarish (Screen Router)
+     4. Tarmoq qatlami (NetManager / PeerJS)
+     5. Tosh-Qaychi-Qog'oz (RPS)
+     6. Krestik-Nolik (TTT) + Minimax AI
+     7. Xotira O'yini (Memory)
+     8. Confetti
+     9. UI bog'lash va ishga tushirish
+   ============================================================ */
+
+/* ============================================================
+   0. I18N — Til lug'ati
+   ============================================================ */
+const I18N = {
+  uz: {
+    app_title: "Mini O'yinlar Markazi",
+    ask_name_title: "Ismingiz nima?",
+    ask_name_sub: "O'ynashni boshlashdan oldin tanishib olaylik",
+    ask_name_placeholder: "Ismingizni yozing...",
+    ask_name_btn: "Boshlash",
+    name_error: "Kamida 2 ta harf kiriting",
+    settings: "Sozlamalar",
+    home_pick_game: "O'ynamoqchi bo'lgan o'yiningizni tanlang",
+    game_rps_title: "Tosh, Qaychi, Qog'oz",
+    game_rps_desc: "Klassik qo'l o'yini",
+    game_ttt_title: "Krestik-Nolik",
+    game_ttt_desc: "3x3 strategiya o'yini",
+    game_memory_title: "Xotira O'yini",
+    game_memory_desc: "Juftliklarni toping",
+    mode_cpu: "Kompyuterga qarshi",
+    mode_friend: "Do'st bilan",
+    mode_random: "Tasodifiy raqib",
+    difficulty_easy: "Oson",
+    difficulty_hard: "Qiyin",
+    choose_difficulty: "Qiyinlik darajasini tanlang",
+    memory_size_easy: "6 juft",
+    memory_size_hard: "8 juft",
+    connect_title: "Do'st bilan ulanish",
+    connect_create: "Kod yaratish",
+    connect_create_desc: "Do'stingizga shu kodni yuboring",
+    connect_waiting: "Do'stingiz ulanishini kutmoqda...",
+    connect_enter_title: "Kodni kiriting",
+    connect_enter_placeholder: "masalan 3K7QZ",
+    connect_enter_placeholder2: "Do'stingiz yuborgan kodni kiriting",
+    connect_join_btn: "Ulanish",
+    connect_random_title: "Tasodifiy raqib qidirilmoqda",
+    connect_random_desc: "Bir daqiqagacha vaqt olishi mumkin",
+    connect_cancel: "Bekor qilish",
+    connect_connected: "Ulandi! Boshlanmoqda...",
+    connect_error: "Ulanishda xatolik yuz berdi. Qaytadan urinib ko'ring.",
+    connect_share_hint: "Bu kodni WhatsApp yoki Telegram orqali yuboring",
+    copy_btn: "Nusxalash",
+    copied: "Nusxalandi!",
+    common_opponent: "Raqib",
+    opponent_disconnected: "Raqib uzildi 😔",
+    settings_language: "Til",
+    settings_your_name: "Ismingiz",
+    settings_change: "O'zgartirish",
+    settings_reset_stats: "Statistikani tozalash",
+    settings_reset_confirm: "Barcha statistika tozalansinmi?",
+    settings_admin_panel: "Admin Panel",
+    settings_close: "Yopish",
+    admin_title: "Admin Panel",
+    admin_desc: "Maxfiy kodni kiriting",
+    admin_placeholder: "Maxfiy kod",
+    admin_submit: "Tasdiqlash",
+    admin_success: "✅ +30 daqiqa qo'shildi!",
+    admin_wrong: "❌ Noto'g'ri kod",
+    admin_used: "Bu kod hozircha ishlatilgan",
+    rest_title: "Charchadingizmi?",
+    rest_msg: "Siz 40 daqiqa o'ynadingiz. Biroz dam oling — ko'zlaringiz va miyangiz rahmat aytadi!",
+    rest_countdown_label: "Qolgan vaqt",
+    timer_label: "O'yin vaqti",
+    timer_remaining_prefix: "Qolgan vaqt: ",
+    timer_blocked_prefix: "Dam olish: ",
+    rps_choose: "Qurolingizni tanlang",
+    rps_you: "SIZ",
+    rps_computer: "KOMPYUTER",
+    rps_win: "yutdingiz!",
+    rps_lose: "yutqazdingiz!",
+    rps_tie: "Durang!",
+    rps_round: "Raund",
+    rps_restart: "Yangi o'yin",
+    rps_history: "O'yin tarixi",
+    rps_stats: "Umumiy statistika",
+    rps_total: "O'ynalgan o'yinlar",
+    rps_wins: "G'alabalar",
+    rps_losses: "Mag'lubiyatlar",
+    rps_rock: "Tosh",
+    rps_paper: "Qog'oz",
+    rps_scissors: "Qaychi",
+    rps_win_match: "🎉 Siz o'yinni yutdingiz!",
+    rps_lose_match: "😔 Siz yutqazdingiz. Yana urinib ko'ring!",
+    rps_waiting_opponent: "Raqib tanlamoqda...",
+    rps_you_picked: "Siz tanladingiz, kuting...",
+    ttt_your_turn: "Sizning navbatingiz",
+    ttt_opp_turn: "Raqib navbati...",
+    ttt_cpu_turn: "Kompyuter o'ylamoqda...",
+    ttt_win: "🎉 Siz yutdingiz!",
+    ttt_lose: "😔 Siz yutqazdingiz!",
+    ttt_tie: "🤝 Durang!",
+    ttt_restart: "Yangi o'yin",
+    ttt_you: "SIZ",
+    ttt_computer: "KOMPYUTER",
+    memory_moves: "Yurishlar",
+    memory_time: "Vaqt",
+    memory_best: "Rekord",
+    memory_win: "🎉 Barcha juftliklar topildi!",
+    memory_new_best: "🏆 Yangi rekord!",
+    memory_restart: "Yangi o'yin",
+  },
+  ru: {
+    app_title: "Игровой Центр",
+    ask_name_title: "Как вас зовут?",
+    ask_name_sub: "Прежде чем начать, давайте познакомимся",
+    ask_name_placeholder: "Введите ваше имя...",
+    ask_name_btn: "Начать",
+    name_error: "Введите минимум 2 буквы",
+    settings: "Настройки",
+    home_pick_game: "Выберите игру",
+    game_rps_title: "Камень, Ножницы, Бумага",
+    game_rps_desc: "Классическая игра",
+    game_ttt_title: "Крестики-Нолики",
+    game_ttt_desc: "Стратегия 3x3",
+    game_memory_title: "Игра на память",
+    game_memory_desc: "Найдите пары",
+    mode_cpu: "Против компьютера",
+    mode_friend: "С другом",
+    mode_random: "Случайный соперник",
+    difficulty_easy: "Легко",
+    difficulty_hard: "Сложно",
+    choose_difficulty: "Выберите уровень сложности",
+    memory_size_easy: "6 пар",
+    memory_size_hard: "8 пар",
+    connect_title: "Подключение к другу",
+    connect_create: "Создать код",
+    connect_create_desc: "Отправьте этот код другу",
+    connect_waiting: "Ожидаем подключения друга...",
+    connect_enter_title: "Введите код",
+    connect_enter_placeholder: "например 3K7QZ",
+    connect_enter_placeholder2: "Введите код, который прислал друг",
+    connect_join_btn: "Подключиться",
+    connect_random_title: "Поиск случайного соперника",
+    connect_random_desc: "Это может занять до минуты",
+    connect_cancel: "Отмена",
+    connect_connected: "Подключено! Начинаем...",
+    connect_error: "Ошибка подключения. Попробуйте снова.",
+    connect_share_hint: "Отправьте этот код через WhatsApp или Telegram",
+    copy_btn: "Копировать",
+    copied: "Скопировано!",
+    common_opponent: "Соперник",
+    opponent_disconnected: "Соперник отключился 😔",
+    settings_language: "Язык",
+    settings_your_name: "Ваше имя",
+    settings_change: "Изменить",
+    settings_reset_stats: "Очистить статистику",
+    settings_reset_confirm: "Очистить всю статистику?",
+    settings_admin_panel: "Админ-панель",
+    settings_close: "Закрыть",
+    admin_title: "Админ-панель",
+    admin_desc: "Введите секретный код",
+    admin_placeholder: "Секретный код",
+    admin_submit: "Подтвердить",
+    admin_success: "✅ +30 минут добавлено!",
+    admin_wrong: "❌ Неверный код",
+    admin_used: "Этот код уже использован",
+    rest_title: "Устали?",
+    rest_msg: "Вы играли 40 минут. Пора немного отдохнуть — ваши глаза и мозг скажут спасибо!",
+    rest_countdown_label: "Осталось времени",
+    timer_label: "Игровое время",
+    timer_remaining_prefix: "Осталось: ",
+    timer_blocked_prefix: "Отдых: ",
+    rps_choose: "Выберите оружие",
+    rps_you: "ВЫ",
+    rps_computer: "КОМПЬЮТЕР",
+    rps_win: "вы выиграли!",
+    rps_lose: "вы проиграли!",
+    rps_tie: "Ничья!",
+    rps_round: "Раунд",
+    rps_restart: "Новая игра",
+    rps_history: "История игры",
+    rps_stats: "Общая статистика",
+    rps_total: "Сыграно игр",
+    rps_wins: "Победы",
+    rps_losses: "Поражения",
+    rps_rock: "Камень",
+    rps_paper: "Бумага",
+    rps_scissors: "Ножницы",
+    rps_win_match: "🎉 Вы выиграли игру!",
+    rps_lose_match: "😔 Вы проиграли. Попробуйте снова!",
+    rps_waiting_opponent: "Соперник выбирает...",
+    rps_you_picked: "Вы выбрали, ожидайте...",
+    ttt_your_turn: "Ваш ход",
+    ttt_opp_turn: "Ход соперника...",
+    ttt_cpu_turn: "Компьютер думает...",
+    ttt_win: "🎉 Вы выиграли!",
+    ttt_lose: "😔 Вы проиграли!",
+    ttt_tie: "🤝 Ничья!",
+    ttt_restart: "Новая игра",
+    ttt_you: "ВЫ",
+    ttt_computer: "КОМПЬЮТЕР",
+    memory_moves: "Ходы",
+    memory_time: "Время",
+    memory_best: "Рекорд",
+    memory_win: "🎉 Все пары найдены!",
+    memory_new_best: "🏆 Новый рекорд!",
+    memory_restart: "Новая игра",
+  },
+  en: {
+    app_title: "Mini Game Hub",
+    ask_name_title: "What's your name?",
+    ask_name_sub: "Let's get acquainted before we start playing",
+    ask_name_placeholder: "Type your name...",
+    ask_name_btn: "Start",
+    name_error: "Please enter at least 2 letters",
+    settings: "Settings",
+    home_pick_game: "Choose a game to play",
+    game_rps_title: "Rock, Paper, Scissors",
+    game_rps_desc: "The classic hand game",
+    game_ttt_title: "Tic-Tac-Toe",
+    game_ttt_desc: "3x3 strategy game",
+    game_memory_title: "Memory Match",
+    game_memory_desc: "Find the matching pairs",
+    mode_cpu: "Vs Computer",
+    mode_friend: "Play with a friend",
+    mode_random: "Random opponent",
+    difficulty_easy: "Easy",
+    difficulty_hard: "Hard",
+    choose_difficulty: "Choose a difficulty",
+    memory_size_easy: "6 pairs",
+    memory_size_hard: "8 pairs",
+    connect_title: "Connect with a friend",
+    connect_create: "Create a code",
+    connect_create_desc: "Send this code to your friend",
+    connect_waiting: "Waiting for your friend to connect...",
+    connect_enter_title: "Enter code",
+    connect_enter_placeholder: "e.g. 3K7QZ",
+    connect_enter_placeholder2: "Enter the code your friend sent you",
+    connect_join_btn: "Connect",
+    connect_random_title: "Looking for a random opponent",
+    connect_random_desc: "This can take up to a minute",
+    connect_cancel: "Cancel",
+    connect_connected: "Connected! Starting...",
+    connect_error: "Connection failed. Please try again.",
+    connect_share_hint: "Send this code via WhatsApp or Telegram",
+    copy_btn: "Copy",
+    copied: "Copied!",
+    common_opponent: "Opponent",
+    opponent_disconnected: "Opponent disconnected 😔",
+    settings_language: "Language",
+    settings_your_name: "Your name",
+    settings_change: "Change",
+    settings_reset_stats: "Clear statistics",
+    settings_reset_confirm: "Clear all statistics?",
+    settings_admin_panel: "Admin Panel",
+    settings_close: "Close",
+    admin_title: "Admin Panel",
+    admin_desc: "Enter the secret code",
+    admin_placeholder: "Secret code",
+    admin_submit: "Confirm",
+    admin_success: "✅ +30 minutes added!",
+    admin_wrong: "❌ Wrong code",
+    admin_used: "This code has already been used",
+    rest_title: "Feeling tired?",
+    rest_msg: "You've played for 40 minutes. Take a short break — your eyes and brain will thank you!",
+    rest_countdown_label: "Time remaining",
+    timer_label: "Play time",
+    timer_remaining_prefix: "Remaining: ",
+    timer_blocked_prefix: "Break: ",
+    rps_choose: "Choose your weapon",
+    rps_you: "YOU",
+    rps_computer: "COMPUTER",
+    rps_win: "you won!",
+    rps_lose: "you lost!",
+    rps_tie: "Tie!",
+    rps_round: "Round",
+    rps_restart: "New game",
+    rps_history: "Game history",
+    rps_stats: "Overall stats",
+    rps_total: "Games played",
+    rps_wins: "Wins",
+    rps_losses: "Losses",
+    rps_rock: "Rock",
+    rps_paper: "Paper",
+    rps_scissors: "Scissors",
+    rps_win_match: "🎉 You won the match!",
+    rps_lose_match: "😔 You lost. Try again!",
+    rps_waiting_opponent: "Opponent is choosing...",
+    rps_you_picked: "You picked, waiting...",
+    ttt_your_turn: "Your turn",
+    ttt_opp_turn: "Opponent's turn...",
+    ttt_cpu_turn: "Computer is thinking...",
+    ttt_win: "🎉 You won!",
+    ttt_lose: "😔 You lost!",
+    ttt_tie: "🤝 It's a tie!",
+    ttt_restart: "New game",
+    ttt_you: "YOU",
+    ttt_computer: "COMPUTER",
+    memory_moves: "Moves",
+    memory_time: "Time",
+    memory_best: "Best",
+    memory_win: "🎉 All pairs found!",
+    memory_new_best: "🏆 New best score!",
+    memory_restart: "New game",
+  }
+};
+
+function t(key) {
+  const dict = I18N[App.lang] || I18N.uz;
+  if (dict[key] !== undefined) return dict[key];
+  return I18N.uz[key] !== undefined ? I18N.uz[key] : key;
+}
+
+function applyStaticI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(function (el) {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
+    el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+  });
+  document.documentElement.lang = App.lang;
+}
+
+/* ============================================================
+   1. Global holat
+   ============================================================ */
+const App = {
+  lang: 'uz',
+  playerName: '',
+  currentScreen: 'screen-home',
+  pendingGame: null // 'rps' | 'ttt'
+};
+
+const GAME_SCREENS = ['screen-rps', 'screen-ttt', 'screen-memory'];
+
+function safeGet(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function safeSet(key, val) {
+  try { localStorage.setItem(key, val); } catch (e) { /* noop */ }
+}
+function safeRemove(key) {
+  try { localStorage.removeItem(key); } catch (e) { /* noop */ }
+}
+
+/* ============================================================
+   2. Vaqt / Blok tizimi (TimerState)
+   ============================================================ */
+const TIME_LIMIT_MS = 40 * 60 * 1000;      // 40 daqiqa — asosiy o'ynash chegarasi
+const BLOCK_MS_NORMAL = 2 * 60 * 60 * 1000; // 2 soat — odatiy tanaffus
+const BLOCK_MS_ADMIN = 1.5 * 60 * 60 * 1000; // 1.5 soat — admin kod ishlatilgandan keyingi tanaffus
+const ADMIN_BONUS_MS = 30 * 60 * 1000;      // 30 daqiqa — admin kod bonusi
+const SECRET_CODE = 'judazarl';
+
+const TimerState = {
+  key: 'games_hub_timer_v1',
+  data: null,
+
+  load() {
+    let raw = safeGet(this.key);
+    let parsed = null;
+    if (raw) {
+      try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+    }
+    this.data = parsed || {
+      accumulatedMs: 0,
+      cycleLimitMs: TIME_LIMIT_MS,
+      blockedUntil: null,
+      nextBlockMs: BLOCK_MS_NORMAL,
+      adminUsedThisCycle: false
+    };
+    // Eski formatlarda maydon yo'q bo'lsa, standart qiymat bilan to'ldiramiz
+    if (typeof this.data.cycleLimitMs !== 'number') this.data.cycleLimitMs = TIME_LIMIT_MS;
+    if (typeof this.data.nextBlockMs !== 'number') this.data.nextBlockMs = BLOCK_MS_NORMAL;
+    if (typeof this.data.adminUsedThisCycle !== 'boolean') this.data.adminUsedThisCycle = false;
+
+    // Agar blok muddati allaqachon tugagan bo'lsa - yangi tsiklni boshlaymiz
+    if (this.data.blockedUntil && Date.now() >= this.data.blockedUntil) {
+      this._startFreshCycle();
+    }
+    this.save();
+  },
+
+  save() {
+    safeSet(this.key, JSON.stringify(this.data));
+  },
+
+  _startFreshCycle() {
+    this.data.blockedUntil = null;
+    this.data.accumulatedMs = 0;
+    this.data.adminUsedThisCycle = false;
+    // cycleLimitMs / nextBlockMs allaqachon triggerBlock() da standartga qaytarilgan bo'ladi
+  },
+
+  isBlocked() {
+    return !!(this.data.blockedUntil && Date.now() < this.data.blockedUntil);
+  },
+
+  remainingBlockMs() {
+    if (!this.data.blockedUntil) return 0;
+    return Math.max(0, this.data.blockedUntil - Date.now());
+  },
+
+  remainingPlayMs() {
+    return Math.max(0, this.data.cycleLimitMs - this.data.accumulatedMs);
+  },
+
+  tick(seconds) {
+    if (this.isBlocked()) return;
+    this.data.accumulatedMs += seconds * 1000;
+    if (this.data.accumulatedMs >= this.data.cycleLimitMs) {
+      this.triggerBlock();
+    }
+    this.save();
+  },
+
+  triggerBlock() {
+    this.data.blockedUntil = Date.now() + this.data.nextBlockMs;
+    this.data.accumulatedMs = 0;
+    // Keyingi (undan keyingi) tsikl uchun standart qiymatlarga qaytamiz
+    this.data.cycleLimitMs = TIME_LIMIT_MS;
+    this.data.nextBlockMs = BLOCK_MS_NORMAL;
+    this.save();
+    if (typeof onBlockTriggered === 'function') onBlockTriggered();
+  },
+
+  // Admin maxfiy kodi qo'llanilganda chaqiriladi. Natija: 'ok' | 'used'
+  applyAdminCode() {
+    if (this.data.adminUsedThisCycle) return 'used';
+    this.data.adminUsedThisCycle = true;
+    if (this.isBlocked()) {
+      this.data.blockedUntil = null;
+    }
+    this.data.cycleLimitMs += ADMIN_BONUS_MS; // +30 daqiqa qo'shildi
+    this.data.nextBlockMs = BLOCK_MS_ADMIN;   // keyingi tanaffus 1.5 soat bo'ladi
+    this.save();
+    return 'ok';
+  },
+
+  checkExpiryLive() {
+    if (this.data.blockedUntil && Date.now() >= this.data.blockedUntil) {
+      this._startFreshCycle();
+      this.save();
+      if (typeof onBlockEnded === 'function') onBlockEnded();
+      return true;
+    }
+    return false;
+  }
+};
+
+function updateTimerBadgeUI() {
+  const badge = document.getElementById('timer-badge');
+  if (!badge) return;
+  if (TimerState.isBlocked()) {
+    const remain = TimerState.remainingBlockMs();
+    badge.textContent = '⏸ ' + fmtHMS(remain);
+    badge.classList.add('timer-badge-blocked');
+  } else {
+    const remain = TimerState.remainingPlayMs();
+    badge.textContent = '⏱ ' + fmtMS(remain);
+    badge.classList.remove('timer-badge-blocked');
+  }
+  const infoEl = document.getElementById('settings-timer-info');
+  if (infoEl) {
+    infoEl.textContent = TimerState.isBlocked()
+      ? t('timer_blocked_prefix') + fmtHMS(TimerState.remainingBlockMs())
+      : t('timer_remaining_prefix') + fmtMS(TimerState.remainingPlayMs());
+  }
+}
+
+function fmtMS(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function fmtHMS(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function updateBlockCountdownUI() {
+  const el = document.getElementById('block-countdown');
+  if (el) el.textContent = fmtHMS(TimerState.remainingBlockMs());
+}
+
+function onBlockTriggered() {
+  notifyQuitIfNetActive();
+  document.getElementById('block-overlay').classList.remove('hidden');
+  updateBlockCountdownUI();
+  updateTimerBadgeUI();
+}
+
+function onBlockEnded() {
+  document.getElementById('block-overlay').classList.add('hidden');
+  showScreen('screen-home');
+  updateTimerBadgeUI();
+}
+
+function startGlobalTicker() {
+  setInterval(function () {
+    if (TimerState.checkExpiryLive()) {
+      // holat allaqachon yangilandi
+    }
+    if (TimerState.isBlocked()) {
+      updateBlockCountdownUI();
+      updateTimerBadgeUI();
+      return;
+    }
+    if (GAME_SCREENS.indexOf(App.currentScreen) !== -1) {
+      TimerState.tick(1);
+    }
+    updateTimerBadgeUI();
+  }, 1000);
+}
+
+/* ============================================================
+   3. Ekranlarni boshqarish (Screen Router)
+   ============================================================ */
+function showScreen(id) {
+  // Agar avvalgi ekran tarmoqli o'yin bo'lsa va endi undan chiqilsa - ulanishni tozalaymiz
+  const leavingGameScreen = GAME_SCREENS.indexOf(App.currentScreen) !== -1 && App.currentScreen !== id;
+  if (leavingGameScreen) {
+    notifyQuitIfNetActive();
+    destroyActiveNet();
+  }
+  document.querySelectorAll('.screen').forEach(function (el) {
+    el.classList.remove('screen-active');
+  });
+  const target = document.getElementById(id);
+  if (target) target.classList.add('screen-active');
+  App.currentScreen = id;
+  updateTimerBadgeUI();
+}
+
+function notifyQuitIfNetActive() {
+  const net = getActiveNet();
+  if (net && net.conn && net.conn.open) {
+    try { net.send({ type: 'quit' }); } catch (e) { /* noop */ }
+  }
+}
+
+function getActiveNet() {
+  if (RPS.mode === 'net' && RPS.net) return RPS.net;
+  if (TTT.mode === 'net' && TTT.net) return TTT.net;
+  return pendingNet;
+}
+
+function destroyActiveNet() {
+  if (RPS.net) { RPS.net.destroy(); RPS.net = null; }
+  if (TTT.net) { TTT.net.destroy(); TTT.net = null; }
+  if (pendingNet) { pendingNet.destroy(); pendingNet = null; }
+}
+
+function handleOpponentDisconnected(game) {
+  const statusId = game === 'rps' ? 'rps-status' : 'ttt-status';
+  const el = document.getElementById(statusId);
+  if (el) el.textContent = t('opponent_disconnected');
+  if (game === 'rps') { RPS.gameOver = true; document.getElementById('rps-controls').querySelectorAll('button').forEach(function(b){ b.disabled = true; }); }
+  if (game === 'ttt') { TTT.gameOver = true; }
+}
+
+/* ============================================================
+   Ism modali
+   ============================================================ */
+function submitName() {
+  const input = document.getElementById('name-input');
+  const val = input.value.trim();
+  if (val.length < 2) {
+    document.getElementById('name-error').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('name-error').classList.add('hidden');
+  App.playerName = val;
+  safeSet('games_hub_name', val);
+  document.getElementById('name-modal').classList.add('hidden');
+  updatePlayerNameUI();
+  showScreen('screen-home');
+}
+
+function updatePlayerNameUI() {
+  const el1 = document.getElementById('player-name-display');
+  const el2 = document.getElementById('settings-name-display');
+  if (el1) el1.textContent = App.playerName || '—';
+  if (el2) el2.textContent = App.playerName || '—';
+}
+
+/* ============================================================
+   Sozlamalar paneli
+   ============================================================ */
+function openSettings() {
+  document.getElementById('settings-panel').classList.remove('hidden');
+  document.getElementById('settings-lang-select').value = App.lang;
+  updatePlayerNameUI();
+  updateTimerBadgeUI();
+}
+function closeSettings() {
+  document.getElementById('settings-panel').classList.add('hidden');
+}
+
+function setLanguage(lang) {
+  if (!I18N[lang]) lang = 'uz';
+  App.lang = lang;
+  safeSet('games_hub_lang', lang);
+  applyStaticI18n();
+  updatePlayerNameUI();
+  updateTimerBadgeUI();
+  document.getElementById('lang-select').value = lang;
+  document.getElementById('settings-lang-select').value = lang;
+}
+
+function resetAllStats() {
+  if (!window.confirm(t('settings_reset_confirm'))) return;
+  safeRemove('rps_pro_stats_v2');
+  safeRemove('ttt_stats_v1');
+  safeRemove('memory_best_easy');
+  safeRemove('memory_best_hard');
+  renderRPSStats();
+  renderTTTStats();
+  renderMemoryBest();
+}
+
+/* ============================================================
+   Admin panel modali
+   ============================================================ */
+function openAdminModal() {
+  document.getElementById('admin-result').textContent = '';
+  document.getElementById('admin-result').className = 'admin-msg';
+  document.getElementById('admin-code-input').value = '';
+  document.getElementById('admin-modal').classList.remove('hidden');
+}
+function closeAdminModal() {
+  document.getElementById('admin-modal').classList.add('hidden');
+}
+
+function submitAdminCode() {
+  const input = document.getElementById('admin-code-input');
+  const code = input.value.trim().toLowerCase();
+  const resultEl = document.getElementById('admin-result');
+  if (code !== SECRET_CODE) {
+    resultEl.textContent = t('admin_wrong');
+    resultEl.className = 'admin-msg admin-msg-error';
+    return;
+  }
+  const res = TimerState.applyAdminCode();
+  if (res === 'used') {
+    resultEl.textContent = t('admin_used');
+    resultEl.className = 'admin-msg admin-msg-error';
+    return;
+  }
+  resultEl.textContent = t('admin_success');
+  resultEl.className = 'admin-msg admin-msg-success';
+  updateTimerBadgeUI();
+  setTimeout(function () {
+    closeAdminModal();
+    if (!TimerState.isBlocked()) {
+      document.getElementById('block-overlay').classList.add('hidden');
+      if (App.currentScreen === 'screen-home' || GAME_SCREENS.indexOf(App.currentScreen) === -1) {
+        showScreen('screen-home');
+      }
+    }
+  }, 1100);
+}
+
+/* ============================================================
+   4. Tarmoq qatlami — NetManager (PeerJS asosida)
+   Eslatma: bu WebRTC ulanishi uchun PeerJS'ning ochiq (bepul)
+   broker serveridan foydalanadi. Internet aloqasi va brauzerning
+   WebRTC'ni qo'llab-quvvatlashi talab qilinadi.
+   ============================================================ */
+const FRIEND_CODE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // chalkash belgilarsiz (0/O, 1/I yo'q)
+
+function generateFriendCode() {
+  let code = '';
+  for (let i = 0; i < 5; i++) {
+    code += FRIEND_CODE_CHARS[Math.floor(Math.random() * FRIEND_CODE_CHARS.length)];
+  }
+  return code;
+}
+
+class NetManager {
+  constructor(prefix) {
+    this.prefix = prefix;
+    this.peer = null;
+    this.conn = null;
+    this.role = null; // 'host' | 'joiner'
+    this.onData = null;
+    this.onConnected = null;
+    this.onDisconnected = null;
+    this.onError = null;
+  }
+
+  destroy() {
+    try { if (this.conn) this.conn.close(); } catch (e) { /* noop */ }
+    try { if (this.peer) this.peer.destroy(); } catch (e) { /* noop */ }
+    this.conn = null;
+    this.peer = null;
+    this.role = null;
+  }
+
+  _bind(conn, role) {
+    this.conn = conn;
+    this.role = role;
+    const self = this;
+    conn.on('data', function (d) { if (self.onData) self.onData(d); });
+    conn.on('close', function () { if (self.onDisconnected) self.onDisconnected(); });
+    conn.on('error', function (e) { if (self.onError) self.onError(e); });
+  }
+
+  send(obj) {
+    if (this.conn && this.conn.open) this.conn.send(obj);
+  }
+
+  hostWithCode(code) {
+    const self = this;
+    return new Promise(function (resolve, reject) {
+      const id = self.prefix + '-' + code;
+      let peer;
+      try { peer = new Peer(id); } catch (e) { reject(e); return; }
+      self.peer = peer;
+      peer.on('open', function () { resolve(); });
+      peer.on('connection', function (conn) {
+        conn.on('open', function () {
+          self._bind(conn, 'host');
+          if (self.onConnected) self.onConnected('host');
+        });
+      });
+      peer.on('error', function (err) { reject(err); });
+    });
+  }
+
+  joinWithCode(code) {
+    const self = this;
+    return new Promise(function (resolve, reject) {
+      let peer;
+      try { peer = new Peer(); } catch (e) { reject(e); return; }
+      self.peer = peer;
+      let settled = false;
+      peer.on('open', function () {
+        const conn = peer.connect(self.prefix + '-' + code, { reliable: true });
+        conn.on('open', function () {
+          if (settled) return;
+          settled = true;
+          self._bind(conn, 'joiner');
+          if (self.onConnected) self.onConnected('joiner');
+          resolve();
+        });
+        conn.on('error', function (err) {
+          if (settled) return;
+          settled = true;
+          reject(err);
+        });
+        setTimeout(function () {
+          if (settled) return;
+          settled = true;
+          reject(new Error('timeout'));
+        }, 10000);
+      });
+      peer.on('error', function (err) {
+        if (settled) return;
+        settled = true;
+        reject(err);
+      });
+    });
+  }
+
+  async randomMatch(maxSlots) {
+    maxSlots = maxSlots || 8;
+    for (let i = 0; i < maxSlots; i++) {
+      const ok = await this._tryJoinSlot(this.prefix + '-lobby-' + i);
+      if (ok) return;
+    }
+    for (let i = 0; i < maxSlots; i++) {
+      const ok = await this._tryHostSlot(this.prefix + '-lobby-' + i);
+      if (ok) return;
+    }
+    throw new Error('no-slots-available');
+  }
+
+  _tryJoinSlot(slotId) {
+    const self = this;
+    return new Promise(function (resolve) {
+      let peer;
+      try { peer = new Peer(); } catch (e) { resolve(false); return; }
+      let done = false;
+      const fail = function () {
+        if (done) return;
+        done = true;
+        try { peer.destroy(); } catch (e) { /* noop */ }
+        resolve(false);
+      };
+      peer.on('open', function () {
+        const conn = peer.connect(slotId, { reliable: true });
+        conn.on('open', function () {
+          if (done) return;
+          done = true;
+          self.peer = peer;
+          self._bind(conn, 'joiner');
+          if (self.onConnected) self.onConnected('joiner');
+          resolve(true);
+        });
+        conn.on('error', fail);
+        setTimeout(fail, 2500);
+      });
+      peer.on('error', fail);
+    });
+  }
+
+  _tryHostSlot(slotId) {
+    const self = this;
+    return new Promise(function (resolve) {
+      let peer;
+      try { peer = new Peer(slotId); } catch (e) { resolve(false); return; }
+      let done = false;
+      peer.on('open', function () {
+        if (done) return;
+        done = true;
+        self.peer = peer;
+        peer.on('connection', function (conn) {
+          conn.on('open', function () {
+            self._bind(conn, 'host');
+            if (self.onConnected) self.onConnected('host');
+          });
+        });
+        resolve(true);
+      });
+      peer.on('error', function () {
+        if (done) return;
+        done = true;
+        try { peer.destroy(); } catch (e) { /* noop */ }
+        resolve(false);
+      });
+    });
+  }
+}
+
+let pendingNet = null;
+
+function enterConnectScreen(kind) {
+  showScreen('screen-connect');
+  resetConnectUI();
+  const prefix = App.pendingGame;
+  pendingNet = new NetManager(prefix);
+  pendingNet.onConnected = function (role) {
+    pendingNet.send({ type: 'hello', name: App.playerName });
+    onNetGameStart(role);
+  };
+  pendingNet.onError = function () { showConnectError(); };
+
+  if (kind === 'host') {
+    const code = generateFriendCode();
+    showHostUI(code);
+    pendingNet.hostWithCode(code).catch(function () { showConnectError(); });
+  } else if (kind === 'join') {
+    showJoinUI();
+  } else if (kind === 'random') {
+    showRandomUI();
+    pendingNet.randomMatch().catch(function () { showConnectError(); });
+  }
+}
+
+function resetConnectUI() {
+  ['connect-choice-box', 'connect-host-box', 'connect-join-box', 'connect-random-box', 'connect-error-box']
+    .forEach(function (id) { document.getElementById(id).classList.add('hidden'); });
+  document.getElementById('connect-cancel-btn').classList.add('hidden');
+  document.getElementById('join-error').classList.add('hidden');
+}
+
+function showConnectChoice() {
+  resetConnectUI();
+  document.getElementById('connect-choice-box').classList.remove('hidden');
+}
+
+function showHostUI(code) {
+  resetConnectUI();
+  document.getElementById('connect-host-box').classList.remove('hidden');
+  document.getElementById('connect-cancel-btn').classList.remove('hidden');
+  document.getElementById('host-code-display').textContent = code;
+}
+
+function showJoinUI() {
+  resetConnectUI();
+  document.getElementById('connect-join-box').classList.remove('hidden');
+  document.getElementById('connect-cancel-btn').classList.remove('hidden');
+  document.getElementById('join-code-input').value = '';
+  document.getElementById('join-code-input').focus();
+}
+
+function showRandomUI() {
+  resetConnectUI();
+  document.getElementById('connect-random-box').classList.remove('hidden');
+  document.getElementById('connect-cancel-btn').classList.remove('hidden');
+}
+
+function showConnectError() {
+  resetConnectUI();
+  document.getElementById('connect-error-box').classList.remove('hidden');
+}
+
+function submitJoinCode() {
+  const raw = document.getElementById('join-code-input').value.trim().toUpperCase();
+  if (raw.length !== 5) {
+    document.getElementById('join-error').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('join-error').classList.add('hidden');
+  showRandomUI(); // kutish spinnerini qayta ishlatamiz
+  document.getElementById('connect-random-box').querySelector('.status-line').textContent = t('connect_waiting');
+  pendingNet.joinWithCode(raw).catch(function () { showConnectError(); });
+}
+
+function onNetGameStart(role) {
+  const prefix = App.pendingGame;
+  const net = pendingNet;
+  pendingNet = null;
+  if (prefix === 'rps') {
+    RPS.startMultiplayer(net, t('common_opponent'));
+    showScreen('screen-rps');
+  } else if (prefix === 'ttt') {
+    TTT.startMultiplayer(net, role, t('common_opponent'));
+    showScreen('screen-ttt');
+  }
+}
+
+function cancelConnectFlow() {
+  if (pendingNet) { pendingNet.destroy(); pendingNet = null; }
+  showScreen('screen-mode-select');
+}
+
+/* ============================================================
+   RPS statistikasi (localStorage)
+   ============================================================ */
+const RPSStorage = {
+  key: 'rps_pro_stats_v2',
+  load() {
+    let raw = safeGet(this.key);
+    let parsed = null;
+    if (raw) { try { parsed = JSON.parse(raw); } catch (e) { parsed = null; } }
+    return parsed || { totalGames: 0, wins: 0, losses: 0 };
+  },
+  recordGame(outcome) {
+    const s = this.load();
+    s.totalGames++;
+    if (outcome === 'user') s.wins++;
+    else if (outcome === 'opp') s.losses++;
+    safeSet(this.key, JSON.stringify(s));
+    return s;
+  },
+  getStats() { return this.load(); }
+};
+
+function renderRPSStats() {
+  const s = RPSStorage.getStats();
+  document.getElementById('rps-stat-total').textContent = s.totalGames;
+  document.getElementById('rps-stat-wins').textContent = s.wins;
+  document.getElementById('rps-stat-losses').textContent = s.losses;
+}
+
+/* ============================================================
+   5. Tosh-Qaychi-Qog'oz (RPS)
+   ============================================================ */
+const RPS = {
+  mode: 'cpu', // 'cpu' | 'net'
+  winningScore: 5,
+  userScore: 0,
+  oppScore: 0,
+  round: 0,
+  myChoiceThisRound: null,
+  oppChoiceThisRound: null,
+  gameOver: false,
+  opponentName: '',
+  net: null,
+  choices: ['rock', 'paper', 'scissors'],
+  emojis: { rock: '🪨', paper: '📄', scissors: '✂️' },
+
+  startCPU() {
+    this.mode = 'cpu';
+    this.net = null;
+    this.opponentName = t('rps_computer');
+    this.resetMatch();
+    document.getElementById('rps-user-label').textContent = App.playerName ? App.playerName.toUpperCase() : t('rps_you');
+    document.getElementById('rps-opp-label').textContent = t('rps_computer');
+    renderRPSFullReset();
+  },
+
+  startMultiplayer(net, opponentName) {
+    this.mode = 'net';
+    this.net = net;
+    this.opponentName = opponentName || t('common_opponent');
+    this.resetMatch();
+    document.getElementById('rps-user-label').textContent = App.playerName ? App.playerName.toUpperCase() : t('rps_you');
+    document.getElementById('rps-opp-label').textContent = this.opponentName.toUpperCase();
+    renderRPSFullReset();
+    const self = this;
+    this.net.onData = function (data) { self.handleNetData(data); };
+    this.net.onDisconnected = function () { handleOpponentDisconnected('rps'); };
+  },
+
+  resetMatch() {
+    this.userScore = 0;
+    this.oppScore = 0;
+    this.round = 0;
+    this.myChoiceThisRound = null;
+    this.oppChoiceThisRound = null;
+    this.gameOver = false;
+  },
+
+  pick(choice) {
+    if (this.gameOver) return;
+    if (this.myChoiceThisRound) return;
+    this.myChoiceThisRound = choice;
+    setRPSControlsDisabled(true);
+
+    if (this.mode === 'cpu') {
+      const compChoice = this.choices[Math.floor(Math.random() * 3)];
+      this.oppChoiceThisRound = compChoice;
+      this.resolveRound();
+    } else {
+      this.net.send({ type: 'rps_choice', choice: choice });
+      if (this.oppChoiceThisRound) {
+        this.resolveRound();
+      } else {
+        document.getElementById('rps-status').textContent = t('rps_you_picked');
+      }
+    }
+  },
+
+  handleNetData(data) {
+    if (data.type === 'rps_choice') {
+      this.oppChoiceThisRound = data.choice;
+      if (this.myChoiceThisRound) {
+        this.resolveRound();
+      } else {
+        document.getElementById('rps-status').textContent = t('rps_waiting_opponent');
+      }
+    } else if (data.type === 'rps_reset') {
+      this.resetMatch();
+      renderRPSFullReset();
+    } else if (data.type === 'hello') {
+      this.opponentName = data.name || t('common_opponent');
+      document.getElementById('rps-opp-label').textContent = this.opponentName.toUpperCase();
+    } else if (data.type === 'quit') {
+      handleOpponentDisconnected('rps');
+    }
+  },
+
+  resolveRound() {
+    this.round++;
+    const mine = this.myChoiceThisRound;
+    const theirs = this.oppChoiceThisRound;
+    let status;
+    if (mine === theirs) {
+      status = 'tie';
+    } else if (
+      (mine === 'rock' && theirs === 'scissors') ||
+      (mine === 'paper' && theirs === 'rock') ||
+      (mine === 'scissors' && theirs === 'paper')
+    ) {
+      status = 'win';
+      this.userScore++;
+    } else {
+      status = 'loss';
+      this.oppScore++;
+    }
+    if (this.userScore === this.winningScore || this.oppScore === this.winningScore) {
+      this.gameOver = true;
+    }
+
+    renderRPSScore(status);
+    renderRPSHistoryItem(this.round, mine, theirs, status);
+
+    let msg = this.emojis[mine] + ' vs ' + this.emojis[theirs] + '<br>';
+    msg += '<span style="font-size:1rem;opacity:0.8">' +
+      (status === 'tie' ? t('rps_tie') : (status === 'win' ? t('rps_you') + ' ' + t('rps_win') : this.opponentName + ' ' + t('rps_win'))) +
+      '</span>';
+    document.getElementById('rps-status').innerHTML = msg;
+
+    this.myChoiceThisRound = null;
+    this.oppChoiceThisRound = null;
+
+    if (this.gameOver) {
+      const iWon = this.userScore === this.winningScore;
+      RPSStorage.recordGame(iWon ? 'user' : 'opp');
+      renderRPSStats();
+      setRPSControlsDisabled(true);
+      document.getElementById('rps-status').textContent = iWon ? t('rps_win_match') : t('rps_lose_match');
+      document.getElementById('rps-reset-btn').classList.add('visible');
+      if (iWon) Confetti.fire();
+    } else {
+      setRPSControlsDisabled(false);
+    }
+  },
+
+  restart() {
+    this.resetMatch();
+    if (this.mode === 'net' && this.net) {
+      this.net.send({ type: 'rps_reset' });
+    }
+    renderRPSFullReset();
+  }
+};
+
+function setRPSControlsDisabled(disabled) {
+  document.querySelectorAll('#rps-controls .action-btn').forEach(function (btn) {
+    btn.disabled = disabled;
+  });
+}
+
+function renderRPSScore(status) {
+  document.getElementById('rps-user-score').textContent = RPS.userScore;
+  document.getElementById('rps-opp-score').textContent = RPS.oppScore;
+  const target = status === 'win' ? document.getElementById('rps-user-score')
+    : (status === 'loss' ? document.getElementById('rps-opp-score') : null);
+  if (target) {
+    target.classList.remove('pop-anim');
+    void target.offsetWidth;
+    target.classList.add('pop-anim');
+    target.style.color = status === 'win' ? 'var(--success)' : 'var(--danger)';
+    setTimeout(function () { target.style.color = 'var(--text-main)'; }, 500);
+  }
+  document.getElementById('rps-round-count').textContent = t('rps_round') + ': ' + RPS.round;
+}
+
+function renderRPSHistoryItem(round, mine, theirs, status) {
+  const li = document.createElement('li');
+  li.className = 'history-item ' + status;
+  const resultText = status === 'tie' ? t('rps_tie') : (status === 'win' ? t('rps_win') : t('rps_lose'));
+  li.innerHTML = '<span style="opacity:0.7;font-size:0.75rem">#' + round + '</span>' +
+    '<span>' + RPS.emojis[mine] + ' vs ' + RPS.emojis[theirs] + '</span>' +
+    '<strong style="color:' + (status === 'win' ? 'var(--success)' : status === 'loss' ? 'var(--danger)' : 'var(--warning)') + '">' + resultText + '</strong>';
+  document.getElementById('rps-history-list').prepend(li);
+}
+
+function renderRPSFullReset() {
+  document.getElementById('rps-user-score').textContent = '0';
+  document.getElementById('rps-opp-score').textContent = '0';
+  document.getElementById('rps-status').textContent = t('rps_choose');
+  document.getElementById('rps-status').style.color = 'var(--text-main)';
+  setRPSControlsDisabled(false);
+  document.getElementById('rps-reset-btn').classList.remove('visible');
+  document.getElementById('rps-history-list').innerHTML = '';
+  document.getElementById('rps-round-count').textContent = t('rps_round') + ': 0';
+  renderRPSStats();
+}
+
+/* ============================================================
+   TTT statistikasi
+   ============================================================ */
+const TTTStorage = {
+  key: 'ttt_stats_v1',
+  load() {
+    let raw = safeGet(this.key);
+    let parsed = null;
+    if (raw) { try { parsed = JSON.parse(raw); } catch (e) { parsed = null; } }
+    return parsed || { totalGames: 0, wins: 0, losses: 0, draws: 0 };
+  },
+  recordGame(outcome) {
+    const s = this.load();
+    s.totalGames++;
+    if (outcome === 'win') s.wins++;
+    else if (outcome === 'lose') s.losses++;
+    else s.draws = (s.draws || 0) + 1;
+    safeSet(this.key, JSON.stringify(s));
+    return s;
+  },
+  getStats() { return this.load(); }
+};
+
+function renderTTTStats() {
+  const s = TTTStorage.getStats();
+  document.getElementById('ttt-stat-total').textContent = s.totalGames;
+  document.getElementById('ttt-stat-wins').textContent = s.wins;
+  document.getElementById('ttt-stat-losses').textContent = s.losses;
+}
+
+/* ============================================================
+   6. Krestik-Nolik (TTT) + Minimax AI
+   ============================================================ */
+const TTT_LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6]
+];
+
+function tttCheckWinner(board) {
+  for (let i = 0; i < TTT_LINES.length; i++) {
+    const line = TTT_LINES[i];
+    const a = line[0], b = line[1], c = line[2];
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return { winner: board[a], line: line };
+    }
+  }
+  if (board.every(function (c) { return !!c; })) return { winner: 'draw', line: null };
+  return null;
+}
+
+function tttMinimax(board, player, aiSymbol, humanSymbol, depth) {
+  depth = depth || 0;
+  const result = tttCheckWinner(board);
+  if (result) {
+    if (result.winner === aiSymbol) return { score: 10 - depth };
+    if (result.winner === humanSymbol) return { score: depth - 10 };
+    return { score: 0 };
+  }
+  const moves = [];
+  for (let i = 0; i < 9; i++) {
+    if (!board[i]) {
+      const newBoard = board.slice();
+      newBoard[i] = player;
+      const nextPlayer = player === aiSymbol ? humanSymbol : aiSymbol;
+      const next = tttMinimax(newBoard, nextPlayer, aiSymbol, humanSymbol, depth + 1);
+      moves.push({ index: i, score: next.score });
+    }
+  }
+  let best = moves[0];
+  if (player === aiSymbol) {
+    for (let i = 1; i < moves.length; i++) { if (moves[i].score > best.score) best = moves[i]; }
+  } else {
+    for (let i = 1; i < moves.length; i++) { if (moves[i].score < best.score) best = moves[i]; }
+  }
+  return best;
+}
+
+function tttBestMove(board, aiSymbol, humanSymbol) {
+  const best = tttMinimax(board, aiSymbol, aiSymbol, humanSymbol, 0);
+  return best.index;
+}
+
+function tttRandomMove(board) {
+  const empty = [];
+  board.forEach(function (c, i) { if (!c) empty.push(i); });
+  return empty[Math.floor(Math.random() * empty.length)];
+}
+
+const TTT = {
+  mode: 'cpu', // 'cpu' | 'net'
+  difficulty: 'hard',
+  board: new Array(9).fill(null),
+  mySymbol: 'X',
+  oppSymbol: 'O',
+  isMyTurn: true,
+  gameOver: false,
+  opponentName: '',
+  net: null,
+
+  startCPU(difficulty) {
+    this.mode = 'cpu';
+    this.net = null;
+    this.difficulty = difficulty;
+    this.mySymbol = 'X';
+    this.oppSymbol = 'O';
+    this.opponentName = t('ttt_computer');
+    this.resetBoard();
+    this.isMyTurn = true;
+    document.getElementById('ttt-user-label').textContent = (App.playerName ? App.playerName.toUpperCase() : t('ttt_you')) + ' (X)';
+    document.getElementById('ttt-opp-label').textContent = t('ttt_computer') + ' (O)';
+    renderTTTFullReset();
+  },
+
+  startMultiplayer(net, role, opponentName) {
+    this.mode = 'net';
+    this.net = net;
+    this.mySymbol = role === 'host' ? 'X' : 'O';
+    this.oppSymbol = role === 'host' ? 'O' : 'X';
+    this.opponentName = opponentName || t('common_opponent');
+    this.resetBoard();
+    this.isMyTurn = (role === 'host');
+    document.getElementById('ttt-user-label').textContent = (App.playerName ? App.playerName.toUpperCase() : t('ttt_you')) + ' (' + this.mySymbol + ')';
+    document.getElementById('ttt-opp-label').textContent = this.opponentName.toUpperCase() + ' (' + this.oppSymbol + ')';
+    renderTTTFullReset();
+    const self = this;
+    this.net.onData = function (data) { self.handleNetData(data); };
+    this.net.onDisconnected = function () { handleOpponentDisconnected('ttt'); };
+  },
+
+  resetBoard() {
+    this.board = new Array(9).fill(null);
+    this.gameOver = false;
+  },
+
+  handleNetData(data) {
+    if (data.type === 'ttt_move') {
+      this.board[data.index] = this.oppSymbol;
+      this.isMyTurn = true;
+      this.afterOpponentMove();
+    } else if (data.type === 'ttt_reset') {
+      this.resetBoard();
+      this.isMyTurn = (this.mySymbol === 'X');
+      renderTTTFullReset();
+    } else if (data.type === 'hello') {
+      this.opponentName = data.name || t('common_opponent');
+      document.getElementById('ttt-opp-label').textContent = this.opponentName.toUpperCase() + ' (' + this.oppSymbol + ')';
+    } else if (data.type === 'quit') {
+      handleOpponentDisconnected('ttt');
+    }
+  },
+
+  playAt(index) {
+    if (this.gameOver) return;
+    if (this.board[index]) return;
+    if (this.mode === 'net' && !this.isMyTurn) return;
+    if (this.mode === 'cpu' && !this.isMyTurn) return;
+
+    this.board[index] = this.mySymbol;
+    renderTTTBoard();
+
+    const result = tttCheckWinner(this.board);
+    if (result) {
+      if (this.mode === 'net') this.net.send({ type: 'ttt_move', index: index });
+      this.finishGame(result);
+      return;
+    }
+
+    if (this.mode === 'net') {
+      this.net.send({ type: 'ttt_move', index: index });
+      this.isMyTurn = false;
+      document.getElementById('ttt-status').textContent = t('ttt_opp_turn');
+    } else {
+      this.isMyTurn = false;
+      document.getElementById('ttt-status').textContent = t('ttt_cpu_turn');
+      const self = this;
+      setTimeout(function () { self.cpuMove(); }, 500);
+    }
+  },
+
+  cpuMove() {
+    if (this.gameOver) return;
+    const idx = this.difficulty === 'hard'
+      ? tttBestMove(this.board, this.oppSymbol, this.mySymbol)
+      : tttRandomMove(this.board);
+    this.board[idx] = this.oppSymbol;
+    renderTTTBoard();
+    const result = tttCheckWinner(this.board);
+    if (result) {
+      this.finishGame(result);
+    } else {
+      this.isMyTurn = true;
+      document.getElementById('ttt-status').textContent = t('ttt_your_turn');
+    }
+  },
+
+  afterOpponentMove() {
+    renderTTTBoard();
+    const result = tttCheckWinner(this.board);
+    if (result) {
+      this.finishGame(result);
+    } else {
+      document.getElementById('ttt-status').textContent = t('ttt_your_turn');
+    }
+  },
+
+  finishGame(result) {
+    this.gameOver = true;
+    let outcome;
+    if (result.winner === 'draw') {
+      outcome = 'draw';
+      document.getElementById('ttt-status').textContent = t('ttt_tie');
+    } else if (result.winner === this.mySymbol) {
+      outcome = 'win';
+      document.getElementById('ttt-status').textContent = t('ttt_win');
+      Confetti.fire();
+    } else {
+      outcome = 'lose';
+      document.getElementById('ttt-status').textContent = t('ttt_lose');
+    }
+    highlightTTTLine(result.line);
+    TTTStorage.recordGame(outcome);
+    renderTTTStats();
+    document.getElementById('ttt-reset-btn').classList.add('visible');
+  },
+
+  restart() {
+    this.resetBoard();
+    if (this.mode === 'cpu') {
+      this.isMyTurn = true;
+    } else {
+      if (this.net) this.net.send({ type: 'ttt_reset' });
+      this.isMyTurn = (this.mySymbol === 'X');
+    }
+    renderTTTFullReset();
+  }
+};
+
+function renderTTTBoard() {
+  const cells = document.querySelectorAll('#ttt-board .ttt-cell');
+  cells.forEach(function (cell, i) {
+    const val = TTT.board[i];
+    cell.textContent = val || '';
+    cell.classList.remove('x-mark', 'o-mark', 'win-line');
+    if (val === 'X') cell.classList.add('x-mark');
+    if (val === 'O') cell.classList.add('o-mark');
+    cell.disabled = !!val || TTT.gameOver;
+  });
+}
+
+function highlightTTTLine(line) {
+  if (!line) return;
+  const cells = document.querySelectorAll('#ttt-board .ttt-cell');
+  line.forEach(function (i) { cells[i].classList.add('win-line'); });
+  cells.forEach(function (c) { c.disabled = true; });
+}
+
+function buildTTTBoardDOM() {
+  const board = document.getElementById('ttt-board');
+  board.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'ttt-cell';
+    btn.dataset.idx = i;
+    btn.addEventListener('click', function () { TTT.playAt(i); });
+    board.appendChild(btn);
+  }
+}
+
+function renderTTTFullReset() {
+  renderTTTBoard();
+  document.getElementById('ttt-reset-btn').classList.remove('visible');
+  document.getElementById('ttt-status').textContent = TTT.isMyTurn ? t('ttt_your_turn') : (TTT.mode === 'cpu' ? t('ttt_cpu_turn') : t('ttt_opp_turn'));
+  renderTTTStats();
+}
+
+/* ============================================================
+   7. Xotira O'yini (Memory Match)
+   ============================================================ */
+const MEMORY_EMOJIS = ['🐶', '🐱', '🐰', '🦊', '🐻', '🐼', '🦁', '🐸', '🐵', '🐷', '🐮', '🐯'];
+
+const Memory = {
+  size: 'easy',
+  cards: [],
+  flipped: [],
+  matchedCount: 0,
+  moves: 0,
+  seconds: 0,
+  timerHandle: null,
+  locked: false,
+
+  start(size) {
+    this.size = size;
+    this.stop();
+    const pairCount = size === 'hard' ? 8 : 6;
+    const chosen = MEMORY_EMOJIS.slice(0, pairCount);
+    let deck = chosen.concat(chosen).map(function (emoji, idx) {
+      return { id: idx, emoji: emoji, matched: false };
+    });
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
+    }
+    this.cards = deck;
+    this.flipped = [];
+    this.matchedCount = 0;
+    this.moves = 0;
+    this.seconds = 0;
+    this.locked = false;
+    this.renderBoard();
+    this.updateStatsUI();
+    renderMemoryBest();
+    const self = this;
+    this.timerHandle = setInterval(function () {
+      self.seconds++;
+      self.updateStatsUI();
+    }, 1000);
+  },
+
+  stop() {
+    if (this.timerHandle) { clearInterval(this.timerHandle); this.timerHandle = null; }
+  },
+
+  renderBoard() {
+    const grid = document.getElementById('memory-grid');
+    grid.innerHTML = '';
+    grid.className = 'memory-grid ' + (this.size === 'hard' ? 'memory-grid-hard' : 'memory-grid-easy');
+    this.cards.forEach(function (card, idx) {
+      const btn = document.createElement('button');
+      btn.className = 'memory-card';
+      btn.dataset.idx = idx;
+      btn.innerHTML = '<span class="memory-card-inner">' +
+        '<span class="memory-face-back">❓</span>' +
+        '<span class="memory-face-front">' + card.emoji + '</span></span>';
+      btn.addEventListener('click', function () { Memory.flipCard(idx); });
+      grid.appendChild(btn);
+    });
+  },
+
+  flipCard(idx) {
+    if (this.locked) return;
+    const card = this.cards[idx];
+    if (card.matched) return;
+    if (this.flipped.indexOf(idx) !== -1) return;
+    if (this.flipped.length >= 2) return;
+
+    const el = document.querySelector('.memory-card[data-idx="' + idx + '"]');
+    el.classList.add('is-flipped');
+    this.flipped.push(idx);
+
+    if (this.flipped.length === 2) {
+      this.moves++;
+      this.updateStatsUI();
+      this.locked = true;
+      const i1 = this.flipped[0], i2 = this.flipped[1];
+      const match = this.cards[i1].emoji === this.cards[i2].emoji;
+      const self = this;
+      setTimeout(function () {
+        const el1 = document.querySelector('.memory-card[data-idx="' + i1 + '"]');
+        const el2 = document.querySelector('.memory-card[data-idx="' + i2 + '"]');
+        if (match) {
+          self.cards[i1].matched = true;
+          self.cards[i2].matched = true;
+          el1.classList.add('is-matched');
+          el2.classList.add('is-matched');
+          self.matchedCount += 2;
+          if (self.matchedCount === self.cards.length) {
+            self.onWin();
+          }
+        } else {
+          el1.classList.remove('is-flipped');
+          el2.classList.remove('is-flipped');
+        }
+        self.flipped = [];
+        self.locked = false;
+      }, 700);
+    }
+  },
+
+  onWin() {
+    this.stop();
+    const bestKey = 'memory_best_' + this.size;
+    let best = null;
+    const raw = safeGet(bestKey);
+    if (raw) { try { best = JSON.parse(raw); } catch (e) { best = null; } }
+    const isNewBest = !best || this.moves < best.moves || (this.moves === best.moves && this.seconds < best.seconds);
+    if (isNewBest) {
+      best = { moves: this.moves, seconds: this.seconds };
+      safeSet(bestKey, JSON.stringify(best));
+    }
+    renderMemoryBest();
+    setTimeout(function () {
+      Confetti.fire();
+      document.getElementById('memory-reset-btn').classList.add('visible');
+      const msg = isNewBest ? t('memory_new_best') : t('memory_win');
+      window.setTimeout(function () { window.alert(msg); }, 50);
+    }, 200);
+  },
+
+  updateStatsUI() {
+    document.getElementById('memory-moves').textContent = this.moves;
+    const m = Math.floor(this.seconds / 60).toString().padStart(2, '0');
+    const s = (this.seconds % 60).toString().padStart(2, '0');
+    document.getElementById('memory-time').textContent = m + ':' + s;
+  }
+};
+
+function renderMemoryBest() {
+  const bestKey = 'memory_best_' + Memory.size;
+  const raw = safeGet(bestKey);
+  const el = document.getElementById('memory-best');
+  if (!el) return;
+  if (!raw) { el.textContent = '—'; return; }
+  try {
+    const best = JSON.parse(raw);
+    const m = Math.floor(best.seconds / 60).toString().padStart(2, '0');
+    const s = (best.seconds % 60).toString().padStart(2, '0');
+    el.textContent = best.moves + ' / ' + m + ':' + s;
+  } catch (e) { el.textContent = '—'; }
+}
+
+/* ============================================================
+   8. Confetti (Canvas animatsiyasi)
+   ============================================================ */
+const Confetti = {
+  canvas: null,
+  ctx: null,
+  particles: [],
+  colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#c084fc'],
+  animating: false,
+
+  init() {
+    this.canvas = document.getElementById('confetti-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.resize();
+    const self = this;
+    window.addEventListener('resize', function () { self.resize(); });
+  },
+
+  resize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  },
+
+  fire() {
+    for (let i = 0; i < 150; i++) {
+      this.particles.push({
+        x: this.canvas.width / 2,
+        y: this.canvas.height / 2,
+        r: Math.random() * 6 + 2,
+        dx: Math.random() * 20 - 10,
+        dy: Math.random() * -20 - 5,
+        color: this.colors[Math.floor(Math.random() * this.colors.length)],
+        tilt: Math.floor(Math.random() * 10) - 10,
+        tiltAngle: 0,
+        tiltAngleInc: (Math.random() * 0.07) + 0.05
+      });
+    }
+    if (!this.animating) {
+      this.animating = true;
+      this.animate();
+    }
+  },
+
+  animate() {
+    const self = this;
+    requestAnimationFrame(function () { self.animate(); });
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    let active = 0;
+    for (let i = 0; i < this.particles.length; i++) {
+      const p = this.particles[i];
+      if (p.y > this.canvas.height) continue;
+      active++;
+      p.tiltAngle += p.tiltAngleInc;
+      p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+      p.x += Math.sin(p.tiltAngle) * 2;
+      p.dy += 0.1;
+      p.y += p.dy;
+      p.x += p.dx;
+      this.ctx.beginPath();
+      this.ctx.lineWidth = p.r;
+      this.ctx.strokeStyle = p.color;
+      this.ctx.moveTo(p.x + p.tilt + p.r, p.y);
+      this.ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+      this.ctx.stroke();
+    }
+    if (active === 0) {
+      this.particles = [];
+      this.animating = false;
+    }
+  }
+};
+
+/* ============================================================
+   9. UI bog'lash va ekranlar orasidagi navigatsiya yordamchilari
+   ============================================================ */
+function openModeSelect(game) {
+  App.pendingGame = game;
+  document.getElementById('ttt-difficulty-box').classList.add('hidden');
+  const titleKey = game === 'rps' ? 'game_rps_title' : 'game_ttt_title';
+  document.getElementById('mode-select-title').textContent = t(titleKey);
+  showScreen('screen-mode-select');
+}
+
+function onModeCpuClick() {
+  if (App.pendingGame === 'rps') {
+    RPS.startCPU();
+    showScreen('screen-rps');
+  } else if (App.pendingGame === 'ttt') {
+    document.getElementById('ttt-difficulty-box').classList.remove('hidden');
+  }
+}
+
+function onModeFriendClick() {
+  showScreen('screen-connect');
+  showConnectChoice();
+}
+
+function onModeRandomClick() {
+  enterConnectScreen('random');
+}
+
+function bindAllEvents() {
+  // Ism modali
+  document.getElementById('name-submit-btn').addEventListener('click', submitName);
+  document.getElementById('name-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') submitName();
+  });
+
+  // Sozlamalar
+  document.getElementById('settings-btn').addEventListener('click', openSettings);
+  document.getElementById('settings-close-btn').addEventListener('click', closeSettings);
+  document.getElementById('settings-change-name-btn').addEventListener('click', function () {
+    closeSettings();
+    document.getElementById('name-input').value = App.playerName;
+    document.getElementById('name-error').classList.add('hidden');
+    document.getElementById('name-modal').classList.remove('hidden');
+  });
+  document.getElementById('settings-reset-btn').addEventListener('click', resetAllStats);
+  document.getElementById('settings-admin-btn').addEventListener('click', openAdminModal);
+  document.getElementById('block-admin-link').addEventListener('click', openAdminModal);
+
+  document.getElementById('lang-select').addEventListener('change', function (e) { setLanguage(e.target.value); });
+  document.getElementById('settings-lang-select').addEventListener('change', function (e) { setLanguage(e.target.value); });
+
+  // Admin modal
+  document.getElementById('admin-submit-btn').addEventListener('click', submitAdminCode);
+  document.getElementById('admin-close-btn').addEventListener('click', closeAdminModal);
+  document.getElementById('admin-code-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') submitAdminCode();
+  });
+
+  // Bosh sahifa - o'yin kartalari
+  document.querySelectorAll('.game-card[data-game]').forEach(function (card) {
+    card.addEventListener('click', function () {
+      const game = card.getAttribute('data-game');
+      if (game === 'memory') {
+        showScreen('screen-memory-setup');
+      } else {
+        openModeSelect(game);
+      }
+    });
+  });
+
+  // Umumiy "orqaga" tugmalari
+  document.querySelectorAll('.back-btn[data-back]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      showScreen(btn.getAttribute('data-back'));
+    });
+  });
+
+  // Rejim tanlash ekrani
+  document.getElementById('mode-btn-cpu').addEventListener('click', onModeCpuClick);
+  document.getElementById('mode-btn-friend').addEventListener('click', onModeFriendClick);
+  document.getElementById('mode-btn-random').addEventListener('click', onModeRandomClick);
+  document.querySelectorAll('#ttt-difficulty-box [data-diff]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const diff = btn.getAttribute('data-diff');
+      TTT.startCPU(diff);
+      showScreen('screen-ttt');
+    });
+  });
+
+  // Xotira qiyinlik tanlash
+  document.querySelectorAll('#screen-memory-setup [data-mem-size]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const size = btn.getAttribute('data-mem-size');
+      showScreen('screen-memory');
+      Memory.start(size);
+    });
+  });
+  document.getElementById('memory-reset-btn').addEventListener('click', function () {
+    document.getElementById('memory-reset-btn').classList.remove('visible');
+    Memory.start(Memory.size);
+  });
+
+  // Ulanish ekrani (Do'st bilan / Tasodifiy)
+  document.getElementById('connect-back-btn').addEventListener('click', cancelConnectFlow);
+  document.getElementById('connect-create-btn').addEventListener('click', function () { enterConnectScreen('host'); });
+  document.getElementById('connect-enter-btn').addEventListener('click', function () { enterConnectScreen('join'); });
+  document.getElementById('join-code-submit-btn').addEventListener('click', submitJoinCode);
+  document.getElementById('join-code-input').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') submitJoinCode();
+  });
+  document.getElementById('copy-code-btn').addEventListener('click', function () {
+    const code = document.getElementById('host-code-display').textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(function () {
+        const btn = document.getElementById('copy-code-btn');
+        const original = btn.textContent;
+        btn.textContent = t('copied');
+        setTimeout(function () { btn.textContent = original; }, 1500);
+      }).catch(function () { /* noop */ });
+    }
+  });
+  document.getElementById('connect-cancel-btn').addEventListener('click', cancelConnectFlow);
+  document.getElementById('connect-retry-btn').addEventListener('click', function () {
+    if (pendingNet) { pendingNet.destroy(); pendingNet = null; }
+    showConnectChoice();
+  });
+
+  // RPS
+  document.querySelectorAll('#rps-controls .action-btn[data-choice]').forEach(function (btn) {
+    btn.addEventListener('click', function () { RPS.pick(btn.getAttribute('data-choice')); });
+  });
+  document.getElementById('rps-reset-btn').addEventListener('click', function () { RPS.restart(); });
+
+  // TTT
+  document.getElementById('ttt-reset-btn').addEventListener('click', function () { TTT.restart(); });
+}
+
+/* ============================================================
+   ISHGA TUSHIRISH
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function () {
+  const savedLang = safeGet('games_hub_lang');
+  App.lang = (savedLang && I18N[savedLang]) ? savedLang : 'uz';
+
+  const savedName = safeGet('games_hub_name');
+  if (savedName) App.playerName = savedName;
+
+  TimerState.load();
+  Confetti.init();
+  buildTTTBoardDOM();
+
+  applyStaticI18n();
+  document.getElementById('lang-select').value = App.lang;
+  document.getElementById('settings-lang-select').value = App.lang;
+  updatePlayerNameUI();
+  renderRPSStats();
+  renderTTTStats();
+  renderMemoryBest();
+
+  bindAllEvents();
+
+  if (savedName) {
+    document.getElementById('name-modal').classList.add('hidden');
+  } else {
+    document.getElementById('name-modal').classList.remove('hidden');
+  }
+
+  showScreen('screen-home');
+
+  if (TimerState.isBlocked()) {
+    document.getElementById('block-overlay').classList.remove('hidden');
+    updateBlockCountdownUI();
+  }
+
+  updateTimerBadgeUI();
+  startGlobalTicker();
+
+  window.addEventListener('beforeunload', function () {
+    notifyQuitIfNetActive();
+    destroyActiveNet();
+  });
+});
+    </script>
+</body>
+</html>
